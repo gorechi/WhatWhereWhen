@@ -1,11 +1,11 @@
-import re
+import requests
+from bs4 import BeautifulSoup
 
-string = '(pic: 20140081.jpg)' \
-         'На розданной фотографии - предмет быта, используемый племенами' \
-         'охотников и скотоводов Восточной Африки. Разновидность этого предмета,' \
-         'которую вы видите, предназначена для мужчин. Она отличается узким' \
-         'круглым основанием, которое не позволяет СДЕЛАТЬ ЭТО. Назовите' \
-         'произведение, в котором ЭТО СДЕЛАЛИ в числе прочих вертел и огонь.'
-s = re.search('\d{6,}.jpg', string)
+fact = requests.get('https://muzey-factov.ru/7478')
 
-print(s.group(0))
+soup = BeautifulSoup(fact.text, 'lxml')
+
+print(soup)
+print('+'*40)
+print(soup.find('p', class_='content').text)
+print(soup.find('img').find('src'))

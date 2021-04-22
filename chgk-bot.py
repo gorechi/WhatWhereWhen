@@ -3,14 +3,15 @@ import requests
 import untangle
 from classQuestions import Question
 import discord
-from pogovorki_functions import *
 import json
+from pogovorki_functions import *
+from random import randint as r
+from bs4 import BeautifulSoup
 
 # Читаем файл
-pogovorki = readfile('pogovorki.txt', True, '|')
-l = len(pogovorki)
-print('Всего поговорок: ' + str(l))
-print('Всего вариантов бреда: ' + str(l*l-l))
+with open('pogovorki.json', encoding='utf-8') as read_data:
+    parsed_data = json.load(read_data)
+wisdom = parsed_data[0]['part1'][0] + parsed_data[3]['part2'][0]
 
 #print(request)
 currentQuestion = {}
@@ -98,8 +99,29 @@ class MyClient(discord.Client):
             await message.reply('Hello!', mention_author=True)
 
         if message.content.startswith('!мудр'):
-            wisdom = trim(pogovorki[dice(0, len(pogovorki) - 1)][0] + pogovorki[dice(0, len(pogovorki) - 1)][1])
+            part1 = random.choice(random.choice(parsed_data)['part1'])
+            part2 = random.choice(random.choice(parsed_data)['part2'])
+            wisdom = trim(part1 + part2)
             await message.channel.send(wisdom, mention_author=True)
+
+        if message.content.startswith('!факт'):
+
+            fact_text = None
+            while not fact_text:
+                r_number = r(1, 7478)
+                print('+' * 40)
+                print('Номер факта:', r_number)
+                print('+' * 40)
+                fact_link = 'https://muzey-factov.ru/' + str(r_number)
+                fact_img = 'https://muzey-factov.ru/img/facts/' + str(r_number) + '.png'
+                fact = requests.get(fact_link)
+                soup = BeautifulSoup(fact.text, 'lxml')
+                if soup.find('p', class_='content'):
+                    fact_text = soup.find('p', class_='content').text
+            fact_text += '\n' + fact_link
+            embed = discord.Embed(color=0x07c610, title='Случайный факт', description=fact_text)  # Создание Embed'a
+            embed.set_image(url = fact_img)  # Устанавливаем картинку Embed'a
+            await message.channel.send(embed=embed)  # Отправляем Embed
 
         if message.content.startswith('!вопрос'):
             if get_question(chat_id):
@@ -130,6 +152,15 @@ class MyClient(discord.Client):
                 embed = discord.Embed(color=0x07c610, title='Случайная лягуха')  # Создание Embed'a
                 embed.set_image(url=json_data['urls']['regular'])  # Устанавливаем картинку Embed'a
                 await message.channel.send (embed=embed)  # Отправляем Embed
+
+        if message.content.startswith('!идиот'):
+            response = requests.get('https://api.unsplash.com/photos/random/?query=idiot&client_id=' + UNSPLASH_KEY)
+            if response.status_code == 200:
+                json_data = json.loads(response.text)  # Извлекаем JSON
+                embed = discord.Embed(color=0x07c610, title='Случайный идиот')  # Создание Embed'a
+                embed.set_image(url=json_data['urls']['regular'])  # Устанавливаем картинку Embed'a
+                await message.channel.send (embed=embed)  # Отправляем Embed
+
 
         if not message.content.startswith('!'):
             if check_answer(chat_id, message.content):
