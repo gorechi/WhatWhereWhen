@@ -1,7 +1,8 @@
 from chgksettings import TOKEN, UNSPLASH_KEY
 import requests
 import untangle
-from classQuestions import Question
+from classQuestion import Question
+from classGame import Game
 import discord
 import json
 from pogovorki_functions import *
@@ -15,6 +16,7 @@ wisdom = parsed_data[0]['part1'][0] + parsed_data[3]['part2'][0]
 
 #print(request)
 currentQuestion = {}
+currentGame = {}
 streak = {}
 
 def get_question(chat_id):
@@ -48,6 +50,18 @@ def get_question(chat_id):
             questionsList.append(vopr)
         random.shuffle(questionsList)
         currentQuestion[chat_id] = questionsList[0]
+        return True
+    else:
+        return False
+
+def get_game(chat_id):
+    global currentGame
+    if not currentQuestion.get(chat_id):
+        request = requests.get('https://db.chgk.info/xml/random/types1').text
+        print(request)
+        obj = untangle.parse(request)
+        new_game = Game(obj, chat_id)
+        currentGame[chat_id] = new_game
         return True
     else:
         return False
@@ -105,7 +119,6 @@ class MyClient(discord.Client):
             await message.channel.send(wisdom, mention_author=True)
 
         if message.content.startswith('!факт'):
-
             fact_text = None
             while not fact_text:
                 r_number = r(1, 7478)
@@ -152,15 +165,6 @@ class MyClient(discord.Client):
                 embed = discord.Embed(color=0x07c610, title='Случайная лягуха')  # Создание Embed'a
                 embed.set_image(url=json_data['urls']['regular'])  # Устанавливаем картинку Embed'a
                 await message.channel.send (embed=embed)  # Отправляем Embed
-
-        if message.content.startswith('!идиот'):
-            response = requests.get('https://api.unsplash.com/photos/random/?query=idiot&client_id=' + UNSPLASH_KEY)
-            if response.status_code == 200:
-                json_data = json.loads(response.text)  # Извлекаем JSON
-                embed = discord.Embed(color=0x07c610, title='Случайный идиот')  # Создание Embed'a
-                embed.set_image(url=json_data['urls']['regular'])  # Устанавливаем картинку Embed'a
-                await message.channel.send (embed=embed)  # Отправляем Embed
-
 
         if not message.content.startswith('!'):
             if check_answer(chat_id, message.content):
