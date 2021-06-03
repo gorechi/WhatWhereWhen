@@ -1,7 +1,6 @@
 from chgksettings import TOKEN, UNSPLASH_KEY
 import requests
 import untangle
-from classQuestion import Question
 from classGame import Game
 import discord
 import json
@@ -16,84 +15,17 @@ wisdom = parsed_data[0]['part1'][0] + parsed_data[3]['part2'][0]
 
 #print(request)
 currentQuestion = {}
-currentGame = {}
+current_game = {}
 streak = {}
 
-def get_question(chat_id):
-    global currentQuestion
-    if not currentQuestion.get(chat_id):
-        questionsList = []
-        request = requests.get('https://db.chgk.info/xml/random/types1').text
-        print(request)
-        obj = untangle.parse(request)
-        for q in obj.search.question:
-            questionId = q.QuestionId.cdata
-            question = q.Question.cdata
-            answer = q.Answer.cdata
-            passCriteria = q.PassCriteria.cdata
-            source = q.Sources.cdata
-            comments = q.Comments.cdata
-            tourTitle = q.tourTitle.cdata
-            tournamentTitle = q.tournamentTitle.cdata
-            tourPlayedAt = q.tourPlayedAt.cdata
-            complexity = q.Complexity.cdata
-            vopr = Question(questionId,
-                            question,
-                            answer,
-                            passCriteria,
-                            source,
-                            comments,
-                            tourTitle,
-                            tournamentTitle,
-                            tourPlayedAt,
-                            complexity)
-            questionsList.append(vopr)
-        random.shuffle(questionsList)
-        currentQuestion[chat_id] = questionsList[0]
-        return True
-    else:
-        return False
-
 def get_game(chat_id):
-    global currentGame
+    global current_game
     if not currentQuestion.get(chat_id):
         request = requests.get('https://db.chgk.info/xml/random/types1').text
-        print(request)
         obj = untangle.parse(request)
         new_game = Game(obj, chat_id)
-        currentGame[chat_id] = new_game
+        current_game[chat_id] = new_game
         return True
-    else:
-        return False
-
-def get_answer(chat_id):
-    global currentQuestion
-    current_question = currentQuestion.get(chat_id)
-    if current_question:
-        answer_string = current_question.answer + '\n'
-        answer_string += '=' * 30 + '\n'
-        if current_question.comments:
-            answer_string += current_question.comments + '\n'
-        if current_question.complexity:
-            answer_string += 'Сложность: ' + current_question.complexity + '\n'
-        answer_string += 'Источник: ' + current_question.source
-        return answer_string
-    else:
-        return False
-
-def check_answer(chat_id, answer):
-    global currentQuestion
-    question = currentQuestion.get(chat_id)
-    if question:
-        right_answer = question.answer.lower()
-        #if question.passCriteria:
-        #    right_answer += question.passCriteria.lower()
-        answer = answer.lower()
-        find_answer = right_answer.find(answer)
-        if find_answer > -1:
-            return True
-        else:
-            return False
     else:
         return False
 
@@ -121,7 +53,7 @@ class MyClient(discord.Client):
         if message.content.startswith('!факт'):
             fact_text = None
             while not fact_text:
-                r_number = r(1, 7478)
+                r_number = r(1, 7495)
                 print('+' * 40)
                 print('Номер факта:', r_number)
                 print('+' * 40)
@@ -137,8 +69,8 @@ class MyClient(discord.Client):
             await message.channel.send(embed=embed)  # Отправляем Embed
 
         if message.content.startswith('!вопрос'):
-            if get_question(chat_id):
-                question = currentQuestion[chat_id]
+            if get_game(chat_id):
+                question = current_game[chat_id].get_random_question()
                 if question.picture:
                     embed = discord.Embed(color=0xff9900)  # Создание Embed'a
                     embed.set_image(url=question.picture)  # Устанавливаем картинку Embed'a
@@ -149,13 +81,16 @@ class MyClient(discord.Client):
                                            mention_author=True)
 
         if message.content.startswith('!ответ'):
-            current_question = currentQuestion[chat_id]
+            if current_game.get(chat_id):
+                current_question = current_game[chat_id].current_question
+            else:
+                current_question = None
             if not current_question:
                 await message.channel.send('Вам еще не задали вопрос, а вы уже хотите ответ.')
             else:
-                answer_string = get_answer(chat_id)
+                answer_string = current_question.get_answer()
                 await message.channel.send(answer_string)
-                currentQuestion[chat_id] = None
+                current_game[chat_id].reset_question()
                 streak[chat_id] = 0
 
         if message.content.startswith('!лягу'):
@@ -167,15 +102,20 @@ class MyClient(discord.Client):
                 await message.channel.send (embed=embed)  # Отправляем Embed
 
         if not message.content.startswith('!'):
-            if check_answer(chat_id, message.content):
-                answer_string = 'Правильно! \n' + get_answer(chat_id)
-                if not streak.get(chat_id):
-                    streak[chat_id] = 0
-                streak[chat_id] += 1
-                if streak[chat_id] == 5:
-                    await message.channel.send('Пять вопросов подряд!')
-                await message.channel.send(answer_string)
-                currentQuestion[chat_id] = None
+            if current_game.get(chat_id):
+                current_question = current_game[chat_id].current_question
+            else:
+                current_question = None
+            if current_question:
+                if current_question.check_answer(message.content):
+                    answer_string = 'Правильно! \n' + current_question.get_answer()
+                    if not streak.get(chat_id):
+                        streak[chat_id] = 0
+                    streak[chat_id] += 1
+                    await message.channel.send(answer_string)
+                    if streak[chat_id] == 5:
+                        await message.channel.send('Пять вопросов подряд!')
+                    current_game[chat_id].reset_question()
 
 client = MyClient()
 client.run(TOKEN)

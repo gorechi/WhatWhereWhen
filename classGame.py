@@ -1,4 +1,5 @@
 from classQuestion import Question
+import random
 
 class Game():
     def __init__(self, obj, chat_id):
@@ -18,3 +19,13 @@ class Game():
                             q.tourPlayedAt.cdata,
                             q.Complexity.cdata)
             self.questions_list.append(vopr)
+        print(self.questions_list)
+
+    def get_random_question(self):
+        random.shuffle(self.questions_list)
+        self.current_question = self.questions_list[0]
+        return self.questions_list[0]
+
+    def reset_question(self):
+        self.current_question = None
+        print(self.current_question)

@@ -25,8 +25,7 @@ class Question():
         self.complexity = complexity
 
     def get_pic(self):
-        text = self.question
-        s = re.search('\d{6,}.jpg', text)
+        s = re.search('\d{6,}.jpg', self.question)
         if s:
             pic_name = s.group(0)
             pic_path = 'https://db.chgk.info/images/db/' + pic_name
@@ -35,8 +34,7 @@ class Question():
             return False
 
     def get_sound(self):
-        text = self.question
-        s = re.search('\d{6,}.mp3', text)
+        s = re.search('\d{6,}.mp3', self.question)
         if s:
             sound_name = s.group(0)
             sound_path = 'https://db.chgk.info/images/db/' + sound_name
@@ -44,3 +42,24 @@ class Question():
         else:
             return False
 
+    def get_answer(self):
+        answer_string = self.answer + '\n'
+        answer_string += '=' * 30 + '\n'
+        if self.comments:
+            answer_string += self.comments + '\n'
+        if self.complexity:
+            answer_string += 'Сложность: ' + self.complexity + '\n'
+        answer_string += 'Источник: ' + self.source
+        return answer_string
+
+    def check_answer(self, answer_string):
+        print(answer_string)
+        right_answer = self.answer.lower()
+        # if question.passCriteria:
+        #    right_answer += question.passCriteria.lower()
+        answer = answer_string.lower()
+        find_answer = right_answer.find(answer)
+        if find_answer > -1:
+            return True
+        else:
+            return False
