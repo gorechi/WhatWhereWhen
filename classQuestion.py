@@ -22,8 +22,11 @@ class Question():
         self.tournamentTitle = tournamentTitle
         self.tourPlayedAt = tourPlayedAt
         self.picture = self.get_pic()
+        self.sound = self.get_sound()
         self.complexity = complexity
 
+    #Функция ищет в тексте вопроса приложенную картинку и если находит ее, возвращает ее в виде
+    # строки с адресом в интернете. Если не находит - возвращает False.
     def get_pic(self):
         s = re.search('\d{6,}.jpg', self.question)
         if s:
@@ -33,6 +36,8 @@ class Question():
         else:
             return False
 
+    # Функция ищет в тексте вопроса приложенный звуковой файл и если находит его, возвращает в виде
+    # строки с адресом в интернете. Если не находит - возвращает False.
     def get_sound(self):
         s = re.search('\d{6,}.mp3', self.question)
         if s:
@@ -42,6 +47,7 @@ class Question():
         else:
             return False
 
+    # Функция возвращает сформированный из нескольких строк ответ на вопрос
     def get_answer(self):
         answer_string = self.answer + '\n'
         answer_string += '=' * 30 + '\n'
@@ -52,11 +58,13 @@ class Question():
         answer_string += 'Источник: ' + self.source
         return answer_string
 
+    # Функция проверяет правильность ответа, для чего ищет вхождение полученной от пользователя строки текста в строку
+    # ответа на вопрос + дополнительные варианты ответов (если они есть). Если в ответе на вотпрос содержится строка
+    # пользователя, возвращается True. Если нет - False.
     def check_answer(self, answer_string):
-        print(answer_string)
         right_answer = self.answer.lower()
-        # if question.passCriteria:
-        #    right_answer += question.passCriteria.lower()
+        if self.passCriteria:
+            right_answer += self.passCriteria.lower()
         answer = answer_string.lower()
         find_answer = right_answer.find(answer)
         if find_answer > -1:

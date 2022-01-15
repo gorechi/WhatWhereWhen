@@ -1,18 +1,13 @@
-from chgksettings import TOKEN, UNSPLASH_KEY
-import requests
-import untangle
-from classGame import Game
-import discord
-import json
-from pogovorki_functions import *
-from random import randint as r
+from chgksettings import TOKEN
+import requests #Импортируем библиотеку HTTP запросов
+import untangle #Импортируем библиотеку обработки XML
+from classGame import Game #Импортируем класс Game
+import discord #Импортируем официальную библиотеку Discord
+from random import randint as r #Импортируем библиотеку random
 from bs4 import BeautifulSoup
 
-# Читаем файл для поговорок
-with open('pogovorki.json', encoding='utf-8') as read_data:
-    parsed_data = json.load(read_data)
 
-# Хэш-таблицы, в которых хранятся данные о текущих играх и отгаданных вопросах для разных чатов
+# Хэш-таблицы (словари), в которых хранятся данные о текущих играх и отгаданных вопросах для разных чатов
 current_game = {}
 streak = {}
 
@@ -45,13 +40,6 @@ class MyClient(discord.Client):
         if message.author.id == self.user.id:
             return
 
-        # Ветка, в которой бот реагирует на команду !Мудрость и выдает идиотскую пословицу
-        if message.content.startswith('!мудр'):
-            part1 = random.choice(random.choice(parsed_data)['part1'])
-            part2 = random.choice(random.choice(parsed_data)['part2'])
-            wisdom = trim(part1 + part2)
-            await message.channel.send(wisdom, mention_author=True)
-
         # Ветка, в которой бот реагирует на команду !Факт и присылает случайный интересный факт
         if message.content.startswith('!факт'):
             fact_text = None
@@ -81,25 +69,30 @@ class MyClient(discord.Client):
             if not current_question:
                 if not full_game:
                     new_game = get_game(chat_id, False)
-                question = current_game[chat_id].get_question()
+                question, number = current_game[chat_id].get_question()
+                if number:
+                    number_string = f'Номер вопроса: {str(number)}'
+                else:
+                    number_string = 'Случайный вопрос'
                 if question.picture:
                     embed = discord.Embed(color=0xff9900)  # Создание Embed'a
                     embed.set_image(url=question.picture)  # Устанавливаем картинку Embed'a
                     await message.channel.send(embed=embed)  # Отправляем Embed
-                await message.channel.send(question.question)
+                await message.channel.send(f'{number_string}\n{question.question}')
             else:
-                await message.channel.send('Не торопись-ка! С начала оветьте на предыдущий вопрос.',
+                await message.channel.send('Не торопись-ка! Сначала ответьте на предыдущий вопрос.',
                                                mention_author=True)
 
         # Ветка, в которой бот реагирует на команду !Игра и начинает новую игру ЧГК
         if message.content.startswith('!игра'):
             if get_game(chat_id, True): # Создаем игру и проверяем, все ли прошло хорошо.
-                question = current_game[chat_id].get_question() # Просим игру дать нам вопрос
+                question, number = current_game[chat_id].get_question() # Просим игру дать нам вопрос и его номер
+                number_string = f'Номер вопроса: {str(number)}'
                 if question.picture: # Проверка на то, что в вопросе есть картинка
                     embed = discord.Embed(color=0xff9900)  # Создание Embed'a
                     embed.set_image(url=question.picture)  # Устанавливаем картинку Embed'a
                     await message.channel.send(embed=embed)  # Отправляем Embed
-                await message.channel.send(question.question) # Отправляем вопрос в чат
+                await message.channel.send(f'{number_string}\n{question.question}') # Отправляем вопрос в чат
             else: # Если игра уже существует, выдаем предупреждение в чат
                 await message.channel.send('Прекратите хулиганить! У вас уже есть запущенная игра.',
                                            mention_author=True)
@@ -118,15 +111,6 @@ class MyClient(discord.Client):
                 current_game[chat_id].current_question = None
                 streak[chat_id] = 0
 
-        # Ветка, в которой бот реагирует на команду !лягушка или !лягуха и присылает случайную фотографию лягушки
-        if message.content.startswith('!лягу'):
-            response = requests.get('https://api.unsplash.com/photos/random/?query=frog&client_id=' + UNSPLASH_KEY)
-            if response.status_code == 200:
-                json_data = json.loads(response.text)  # Извлекаем JSON
-                embed = discord.Embed(color=0x07c610, title='Случайная лягуха')  # Создание Embed'a
-                embed.set_image(url=json_data['urls']['regular'])  # Устанавливаем картинку Embed'a
-                await message.channel.send (embed=embed)  # Отправляем Embed
-
         # Ветка, в которой бот реагирует на обычный текст и, если задан вопрос ЧГК, пытается сравнить этот текст
         # с ответом на этот вопрос. Если ответ содержит присланный текст, вопрос считается отвеченным.
         if not message.content.startswith('!'):
@@ -141,9 +125,9 @@ class MyClient(discord.Client):
                         streak[chat_id] = 0
                     streak[chat_id] += 1
                     await message.channel.send(answer_string)
-                    if streak[chat_id] == 5:
-                        await message.channel.send('Пять вопросов подряд!')
-                    current_game[chat_id].reset_question()
+                    if streak[chat_id] >= 5:
+                        await message.channel.send(f'{streak[chat_id]} вопросов подряд!')
+                    current_game[chat_id].current_question = None
 
 client = MyClient()
 client.run(TOKEN)
