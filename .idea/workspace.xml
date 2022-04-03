@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4107b672-06b6-4fcd-8401-92d1bacbf737" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/chgk-bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/chgk-bot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classGame.py" beforeDir="false" afterPath="$PROJECT_DIR$/classGame.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classQuestion.py" beforeDir="false" afterPath="$PROJECT_DIR$/classQuestion.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

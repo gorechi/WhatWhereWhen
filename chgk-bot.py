@@ -63,8 +63,8 @@ class MyClient(discord.Client):
             fact_text = None
             while not fact_text:
                 r_number = r(1, 7495)
-                fact_link = 'https://muzey-factov.ru/' + str(r_number)
-                fact_img = 'https://muzey-factov.ru/img/facts/' + str(r_number) + '.png'
+                fact_link = 'https://facts.museum/' + str(r_number)
+                fact_img = 'https://facts.museum/img/facts/' + str(r_number) + '.jpg'
                 fact = requests.get(fact_link)
                 soup = BeautifulSoup(fact.text, 'lxml')
                 if soup.find('p', class_='content'):
