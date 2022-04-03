@@ -114,3 +114,5 @@ dmypy.json
 .pyre/
 config.py
 config.py
+chgksettings.py
+chgksettings.py
