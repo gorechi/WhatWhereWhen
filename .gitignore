@@ -112,7 +112,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-config.py
-config.py
-chgksettings.py
-chgksettings.py
+settings.py
