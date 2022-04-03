@@ -1,5 +1,5 @@
 # Импортируем секретный токен
-from chgksettings import TOKEN
+from settings import TOKEN
 # Импортируем библиотеку HTTP запросов
 import requests 
 # Импортируем библиотеку обработки XML
