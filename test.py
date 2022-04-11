@@ -1,10 +1,13 @@
 import re
+from pymorphy2 import MorphAnalyzer
 
-a = '!сложность 1'
-b = '!сложность 6'
-c = '!сложность'
-d = '!сложность 12'
-l = [a, b, c, d]
-for i in l:
-    if re.match('!сложность [1-5]', i):
-        print (i[11])
+test_string = 'бить'
+
+morph = MorphAnalyzer()
+
+result = morph.parse(test_string)[0]
+print(result)
+lexemes = result.lexeme
+for lexeme in lexemes:
+    print(lexeme.word)
+
