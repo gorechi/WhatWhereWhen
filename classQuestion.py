@@ -2,6 +2,7 @@
 # изображений и звуковых файлов
 
 import re
+from typing import List
 
 # Описание класс Вопрос
 
@@ -16,7 +17,8 @@ class Question():
                  tourTitle,
                  tournamentTitle,
                  tourPlayedAt,
-                 complexity):
+                 complexity,
+                 morph):
         self.questionId = questionId
         self.question = question
         self.answer = answer
@@ -29,6 +31,7 @@ class Question():
         self.picture = self.get_pic()
         self.sound = self.get_sound()
         self.complexity = complexity
+        self.morph = morph
 
 # Функция ищет в тексте вопроса приложенную картинку и если находит ее, возвращает ее в виде
 # строки с адресом в интернете. Если не находит - возвращает False.
@@ -70,13 +73,30 @@ class Question():
 # ответа на вопрос + дополнительные варианты ответов (если они есть). Если в ответе на вотпрос содержится строка
 # пользователя, возвращается True. Если нет - False.
 
-    def check_answer(self, answer_string):
+    def check_answer(self, input_string):
         right_answer = self.answer.lower()
-        if self.passCriteria:
-            right_answer += self.passCriteria.lower()
-        answer = answer_string.lower()
-        find_answer = right_answer.find(answer)
-        if find_answer > -1:
-            return True
-        else:
-            return False
+        answer_list = self.string_to_list(right_answer)
+        print(answer_list)
+        input_list = self.string_to_list(input_string)
+        print(input_list)
+        answer_list = self.normalize_list(answer_list)
+        print(answer_list)
+        input_list = self.normalize_list(input_list)
+        print(input_list)
+        for word in input_list:
+            if not word in answer_list:
+                return False
+        return True
+        
+    def string_to_list(self, input_string:str) -> List:
+        no_symbols_string = re.sub("[,|.|?|!]", "", input_string)
+        no_symbols_string.replace('  ', ' ')
+        word_list = no_symbols_string.split(' ')
+        return word_list
+    
+    def normalize_list(self, input_list:List) -> List:
+        result_list = []
+        for word in input_list:
+            result_word = self.morph.parse(word)[0].normal_form
+            result_list.append(result_word)
+        return result_list
