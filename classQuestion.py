@@ -3,6 +3,7 @@
 
 import re
 from typing import List
+from xmlrpc.client import boolean
 
 # Описание класс Вопрос
 
@@ -36,7 +37,7 @@ class Question():
 # Функция ищет в тексте вопроса приложенную картинку и если находит ее, возвращает ее в виде
 # строки с адресом в интернете. Если не находит - возвращает False.
 
-    def get_pic(self):
+    def get_pic(self) -> str:
         s = re.search('\d{6,}.jpg', self.question)
         if s:
             pic_name = s.group(0)
@@ -48,7 +49,7 @@ class Question():
 # Функция ищет в тексте вопроса приложенный звуковой файл и если находит его, возвращает в виде
 # строки с адресом в интернете. Если не находит - возвращает False.
 
-    def get_sound(self):
+    def get_sound(self) -> str:
         s = re.search('\d{6,}.mp3', self.question)
         if s:
             sound_name = s.group(0)
@@ -59,7 +60,7 @@ class Question():
 
 # Функция возвращает сформированный из нескольких строк ответ на вопрос
 
-    def get_answer(self):
+    def get_answer(self) -> str:
         answer_string = self.answer + '\n'
         answer_string += '=' * 30 + '\n'
         if self.comments:
@@ -73,30 +74,20 @@ class Question():
 # ответа на вопрос + дополнительные варианты ответов (если они есть). Если в ответе на вотпрос содержится строка
 # пользователя, возвращается True. Если нет - False.
 
-    def check_answer(self, input_string):
+    def check_answer(self, input_string:str) -> bool:
         right_answer = self.answer.lower()
-        answer_list = self.string_to_list(right_answer)
-        print(answer_list)
-        input_list = self.string_to_list(input_string)
-        print(input_list)
-        answer_list = self.normalize_list(answer_list)
-        print(answer_list)
-        input_list = self.normalize_list(input_list)
-        print(input_list)
+        answer_list = self.normalize_string(right_answer)
+        input_list = self.normalize_string(input_string)
         for word in input_list:
             if not word in answer_list:
                 return False
         return True
-        
-    def string_to_list(self, input_string:str) -> List:
-        no_symbols_string = re.sub("[,|.|?|!]", "", input_string)
-        no_symbols_string.replace('  ', ' ')
-        word_list = no_symbols_string.split(' ')
-        return word_list
-    
-    def normalize_list(self, input_list:List) -> List:
+           
+    def normalize_string(self, input_string:str) -> List:
+        word_list = re.split(r'\W+', input_string)
+        clean_list = [word for word in word_list if word != '']
         result_list = []
-        for word in input_list:
+        for word in clean_list:
             result_word = self.morph.parse(word)[0].normal_form
             result_list.append(result_word)
         return result_list
