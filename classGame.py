@@ -10,13 +10,14 @@ class Game():
 # По умолчанию принимается, что новая игра не является полной, то есть пользователь хочет просто получить
 # один вопрос из этой игры.
 
-    def __init__(self, obj, chat_id, is_full_game=False):
+    def __init__(self, obj, chat_id, is_full_game=False, morph=None):
         self.obj = obj
         self.chat_id = chat_id
         self.questions_list = []
         self.current_question = None
         self.current_question_number = 0
         self.is_full_game = is_full_game
+        self.morph = morph
 # Пробегаем по вопросам, которые содержатся в объекте игры и из каждого вопроса создаем объект класса Вопрос.
 # Все созданные объекты записываются в список вопросов игры.
         for q in self.obj.search.question:
@@ -29,7 +30,8 @@ class Game():
                             q.tourTitle.cdata,
                             q.tournamentTitle.cdata,
                             q.tourPlayedAt.cdata,
-                            q.Complexity.cdata)
+                            q.Complexity.cdata,
+                            morph = self.morph)
             self.questions_list.append(vopr)
         self.number_of_questions = len(self.questions_list)
 

@@ -2,6 +2,8 @@
 # изображений и звуковых файлов
 
 import re
+from typing import List
+from xmlrpc.client import boolean
 
 # Описание класс Вопрос
 
@@ -16,7 +18,8 @@ class Question():
                  tourTitle,
                  tournamentTitle,
                  tourPlayedAt,
-                 complexity):
+                 complexity,
+                 morph):
         self.questionId = questionId
         self.question = question
         self.answer = answer
@@ -29,11 +32,12 @@ class Question():
         self.picture = self.get_pic()
         self.sound = self.get_sound()
         self.complexity = complexity
+        self.morph = morph
 
 # Функция ищет в тексте вопроса приложенную картинку и если находит ее, возвращает ее в виде
 # строки с адресом в интернете. Если не находит - возвращает False.
 
-    def get_pic(self):
+    def get_pic(self) -> str:
         s = re.search('\d{6,}.jpg', self.question)
         if s:
             pic_name = s.group(0)
@@ -45,7 +49,7 @@ class Question():
 # Функция ищет в тексте вопроса приложенный звуковой файл и если находит его, возвращает в виде
 # строки с адресом в интернете. Если не находит - возвращает False.
 
-    def get_sound(self):
+    def get_sound(self) -> str:
         s = re.search('\d{6,}.mp3', self.question)
         if s:
             sound_name = s.group(0)
@@ -56,7 +60,7 @@ class Question():
 
 # Функция возвращает сформированный из нескольких строк ответ на вопрос
 
-    def get_answer(self):
+    def get_answer(self) -> str:
         answer_string = self.answer + '\n'
         answer_string += '=' * 30 + '\n'
         if self.comments:
@@ -70,13 +74,20 @@ class Question():
 # ответа на вопрос + дополнительные варианты ответов (если они есть). Если в ответе на вотпрос содержится строка
 # пользователя, возвращается True. Если нет - False.
 
-    def check_answer(self, answer_string):
+    def check_answer(self, input_string:str) -> bool:
         right_answer = self.answer.lower()
-        if self.passCriteria:
-            right_answer += self.passCriteria.lower()
-        answer = answer_string.lower()
-        find_answer = right_answer.find(answer)
-        if find_answer > -1:
-            return True
-        else:
-            return False
+        answer_list = self.normalize_string(right_answer)
+        input_list = self.normalize_string(input_string)
+        for word in input_list:
+            if not word in answer_list:
+                return False
+        return True
+           
+    def normalize_string(self, input_string:str) -> List:
+        word_list = re.split(r'\W+', input_string)
+        clean_list = [word for word in word_list if word != '']
+        result_list = []
+        for word in clean_list:
+            result_word = self.morph.parse(word)[0].normal_form
+            result_list.append(result_word)
+        return result_list

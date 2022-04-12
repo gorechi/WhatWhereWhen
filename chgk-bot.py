@@ -13,12 +13,15 @@ from random import randint as r
 # Импортируем библиотеку для работы с данными из XML 
 from bs4 import BeautifulSoup 
 import re
+import pymorphy2
 
 
 # Хэш-таблицы (словари), в которых хранятся данные о текущих играх и отгаданных вопросах для разных чатов
 current_game = {}
 streak = {}
 complex_dict = {}
+
+morph = pymorphy2.MorphAnalyzer()
 
 # Функция создания новой игры. Данные берутся с сайта db.chgk.info
 def get_game(chat_id, is_full_game):
@@ -34,7 +37,7 @@ def get_game(chat_id, is_full_game):
             request_string = f'https://db.chgk.info/xml/random/complexity{str(complex_dict[chat_id])}/types1'
         request = requests.get(request_string).text
         obj = untangle.parse(request)
-        new_game = Game(obj, chat_id, is_full_game)
+        new_game = Game(obj, chat_id, is_full_game, morph = morph)
         current_game[chat_id] = new_game
         return True
     else:
@@ -144,7 +147,6 @@ class MyClient(discord.Client):
                 await message.channel.send('В этот чат будут приходить игры и вопросы любой сложности.')
             else:
                 await message.channel.send(f'В этот чат будут приходить {complex_list[complexity]} игры и вопросы.')
-            print(complex_dict[chat_id])
 
 # Ветка, в которой бот реагирует на обычный текст и, если задан вопрос ЧГК, пытается сравнить этот текст
 # с ответом на этот вопрос. Если ответ содержит присланный текст, вопрос считается отвеченным.
