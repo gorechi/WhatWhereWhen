@@ -78,6 +78,10 @@ class Question():
         right_answer = self.answer.lower()
         answer_list = self.normalize_string(right_answer)
         input_list = self.normalize_string(input_string)
+        print(answer_list)
+        print(input_list)
+        if len(input_list) == 0:
+            return False
         for word in input_list:
             if not word in answer_list:
                 return False
