@@ -56,6 +56,9 @@ class MyClient(discord.Client):
 
         if message.content.startswith('!ответ'):
             await answer_answer(message)
+            
+        if message.content.startswith('!повтор'):
+            await repeat_answer(message)
 
         if message.content.startswith('!закончить'):
             await finish_answer(message)
@@ -104,6 +107,27 @@ async def question_answer(message):
         await message.channel.send(f'{number_string}\n{question.question}')
     else:
         await message.channel.send('Не торопись-ка! Сначала ответьте на предыдущий вопрос.',
+                                    mention_author=True)
+
+async def repeat_answer(message):
+    global current_game
+    chat_id = message.channel.id
+    current_question = None
+    if current_game.get(chat_id):
+        current_question = current_game[chat_id].current_question
+    if current_question:
+        question, number, number_of_questions = current_game[chat_id].get_question()
+        if number:
+            number_string = f'Номер вопроса: {str(number)} из {str(number_of_questions)}'
+        else:
+            number_string = 'Случайный вопрос'
+        if current_question.picture:
+            embed = discord.Embed(color=0xff9900)
+            embed.set_image(url=current_question.picture)
+            await message.channel.send(embed=embed)
+        await message.channel.send(f'{number_string}\n{current_question.question}')
+    else:
+        await message.channel.send('Нечего повторять - вопрос-то не задали еще.',
                                     mention_author=True)
 
 async def gama_answer(message):
