@@ -1,0 +1,15 @@
+name: update chgk bot on lightsail
+on:
+  workflow_dispatch:
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: executing remote ssh commands using key
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        script: ${{ secrets.SCRIPT_PATH }}
