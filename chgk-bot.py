@@ -2,11 +2,11 @@ from settings import TOKEN
 import requests 
 import untangle 
 from classGame import Game
-import discord
+from discord import Message, Client, Embed
 from random import randint as r
 from bs4 import BeautifulSoup 
 import re
-import pymorphy2
+from pymorphy2 import MorphAnalyzer
 
 
 # Хэш-таблицы (словари), в которых хранятся данные о текущих играх и отгаданных вопросах для разных чатов
@@ -14,9 +14,9 @@ current_game = {}
 streak = {}
 difficulty_dict = {}
 
-morph = pymorphy2.MorphAnalyzer()
+morph = MorphAnalyzer()
 
-def get_game(chat_id, is_full_game):
+def get_game(chat_id: str, is_full_game: bool) -> bool:
     global difficulty_dict
     global current_game
     have_question = False
@@ -36,12 +36,12 @@ def get_game(chat_id, is_full_game):
     else:
         return False
 
-class MyClient(discord.Client):
+class MyClient(Client):
 
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
 
-    async def on_message(self, message):
+    async def on_message(self, message:Message) -> None:
         if message.author.id == self.user.id:
             return
 
@@ -69,7 +69,7 @@ class MyClient(discord.Client):
         if not message.content.startswith('!'):
             await plain_text_answer(message)
 
-async def fact_answer(message):
+async def fact_answer(message: Message) -> None:
     fact_text = None
     while not fact_text:
         r_number = r(1, 7495)
@@ -80,11 +80,11 @@ async def fact_answer(message):
         if soup.find('p', class_='content'):
             fact_text = soup.find('p', class_='content').text
     fact_text += '\n' + fact_link
-    embed = discord.Embed(color=0x07c610, title='Случайный факт', description=fact_text)
+    embed = Embed(color=0x07c610, title='Случайный факт', description=fact_text)
     embed.set_image(url = fact_img)
     await message.channel.send(embed=embed)
     
-async def question_answer(message):
+async def question_answer(message: Message) -> None:
     global current_game
     chat_id = message.channel.id
     full_game = False
@@ -101,7 +101,7 @@ async def question_answer(message):
         else:
             number_string = 'Случайный вопрос'
         if question.picture:
-            embed = discord.Embed(color=0xff9900)
+            embed = Embed(color=0xff9900)
             embed.set_image(url=question.picture)
             await message.channel.send(embed=embed)
         await message.channel.send(f'{number_string}\n{question.question}')
@@ -109,7 +109,7 @@ async def question_answer(message):
         await message.channel.send('Не торопись-ка! Сначала ответьте на предыдущий вопрос.',
                                     mention_author=True)
 
-async def repeat_answer(message):
+async def repeat_answer(message: Message) -> None:
     global current_game
     chat_id = message.channel.id
     current_question = None
@@ -122,7 +122,7 @@ async def repeat_answer(message):
         else:
             number_string = 'Случайный вопрос'
         if current_question.picture:
-            embed = discord.Embed(color=0xff9900)
+            embed = Embed(color=0xff9900)
             embed.set_image(url=current_question.picture)
             await message.channel.send(embed=embed)
         await message.channel.send(f'{number_string}\n{current_question.question}')
@@ -130,14 +130,14 @@ async def repeat_answer(message):
         await message.channel.send('Нечего повторять - вопрос-то не задали еще.',
                                     mention_author=True)
 
-async def gama_answer(message):
+async def gama_answer(message: Message) -> None:
     global current_game
     chat_id = message.channel.id
     if get_game(chat_id, True):
         question, number, number_of_questions = current_game[chat_id].get_question()
         number_string = f'Номер вопроса: {str(number)} из {str(number_of_questions)}'
         if question.picture:
-            embed = discord.Embed(color=0xff9900)
+            embed = Embed(color=0xff9900)
             embed.set_image(url=question.picture)
             await message.channel.send(embed=embed)
         await message.channel.send(f'{number_string}\n{question.question}')
@@ -145,7 +145,7 @@ async def gama_answer(message):
         await message.channel.send('Прекратите хулиганить! У вас уже есть запущенная игра.',
                                         mention_author=True)
 
-async def answer_answer(message):
+async def answer_answer(message: Message) -> None:
     global streak
     global current_game
     chat_id = message.channel.id
@@ -161,7 +161,7 @@ async def answer_answer(message):
         current_game[chat_id].current_question = None
         streak[chat_id] = 0
 
-async def finish_answer(message):
+async def finish_answer(message: Message) -> None:
     global current_game
     chat_id = message.channel.id
     if not current_game.get(chat_id):
@@ -171,7 +171,7 @@ async def finish_answer(message):
         current_game.get(chat_id).end_game()
         current_game.pop(chat_id, False)
 
-async def difficulty_answer(message):
+async def difficulty_answer(message: Message) -> None:
     global difficulty_dict
     chat_id = message.channel.id
     difficulty = int(message.content[11])
@@ -182,7 +182,7 @@ async def difficulty_answer(message):
     else:
         await message.channel.send(f'В этот чат будут приходить {difficulty_list[difficulty]} игры и вопросы.')
 
-async def plain_text_answer(message):
+async def plain_text_answer(message: Message) -> None:
     global current_game
     global streak
     chat_id = message.channel.id
