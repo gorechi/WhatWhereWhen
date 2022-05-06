@@ -1,4 +1,3 @@
-import re
+a = '!15'
 
-
-print(re.split(r'\W+', 'Где, скажите мне, мои очки'))
+print(a.split('!'))
