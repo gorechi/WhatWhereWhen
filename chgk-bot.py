@@ -18,7 +18,22 @@ from db.db_functions import set_chat_difficulty, player_add_answer, get_chat_ans
 
 
 class Bot(Client):
+    
+    """Класс бота Discord"""
+    
     def __init__(self, *, loop=None, **options):
+        
+        """В стандартный класс клиента бота Discord добавлены несколько переменных,
+        необходимых для функционирования бота Что? Где? Когда?
+        
+        - self.morph - движок морфологического анализа слов, который используется при проверке
+        правильности ответов на вопросы
+        - self.hosts - словарь игроков, которые являются ведущими в разных чатах. Ключ - идентификатор чата.
+        - self.game_states - словарь текущих состояний игр. Ключ - идентификатор чата.
+        - self.answering_player - словарь отвечающих игроков в разных чатах. Ключ - идентификатор чата.
+        - self.played - словарь игроков, которые не могут отвечать на текущий вопрос. 
+        Ключ - идентификатор чата, значение - список идентификаторов игроков."""
+        
         super().__init__(loop=loop, options=options)
         self.morph = MorphAnalyzer()
         self.hosts = {}
@@ -226,6 +241,9 @@ class Bot(Client):
 
     
     async def repeat(self, message: Message) -> None:
+        
+        """Метод повторно выводит в чат уже заданный вопрос."""
+        
         current_game = Game.current_game
         chat_id = message.channel.id
         current_question = None
@@ -249,6 +267,10 @@ class Bot(Client):
 
     
     async def game(self, message: Message) -> None:
+        
+        """Метод запускает в чате новую полную игру "Что? Где? Когда". 
+        Перед запуском новой игры происходит проверка на то, что нет уже запущенной игры."""
+        
         chat_id = message.channel.id
         current_game, current_question, game_type = self.get_current_game_and_question(
             message=message)
@@ -274,6 +296,9 @@ class Bot(Client):
 
     
     async def answer(self, message: Message) -> None:
+        
+        """Метод выводит в чат ответ на вопрос игры "Что? Где? Когда?" """
+        
         chat_id = message.channel.id
         current_game = Game.current_game.get(chat_id)
         if current_game:
@@ -292,6 +317,9 @@ class Bot(Client):
 
     
     async def finish(self, message: Message) -> None:
+        
+        """Метод досрочно заканчивает игру, которую играют в чате."""
+        
         current_game, question, game_type = self.get_current_game_and_question(
             message=message)
         chat_id = message.channel.id
@@ -346,9 +374,7 @@ class Bot(Client):
         Реализованы три ветки логики:
         
         - Ответ на вопрос "Что? Где? Когда?"
-        
         - Нажатие кнопки в Своей игре
-        
         - Ответ на вопрос в Своей игре"""
         
         chat_id = message.channel.id
@@ -482,6 +508,9 @@ class Bot(Client):
 
     
     def check_answering_player(self, message:Message) -> bool:
+        
+        """Метод проверяет, пришло ли сообщение от игрока, который должен сейчас отвечать."""
+        
         chat_id = message.channel.id
         player_id = message.author.id
         answering_player = self.answering_player.get(chat_id)
@@ -491,18 +520,29 @@ class Bot(Client):
         return False
     
     
-    def add_played(self, chat_id: str, player_id: str):
+    def add_played(self, chat_id: str, player_id: str) -> None:
+        
+        """Метод добавляет игрока, который ответил неправильно, в список игроков,
+        которые больше не могут отвеечать на текущий вопрос."""
+        
         if not self.played.get(chat_id):
             self.played[chat_id] = []
         self.played[chat_id].append(player_id)
 
     
     def clear_played(self, chat_id: str):
+        
+        """Метод очищает списко игроков, которые не могут отвечать."""
+        
         if self.played.get(chat_id):
             self.played.pop(chat_id)
 
     
     def check_played(self, chat_id: str, player_id: str) -> bool:
+        
+        """Метод проверяет, находится ли игрок, приславший сообщение, в списке игроков,
+        которые не могут отвечать на вопрос."""
+        
         played_list = self.played.get(chat_id)
         if played_list:
             if player_id in played_list:
@@ -511,6 +551,22 @@ class Bot(Client):
 
     
     def get_current_game_and_question(self, message: Message) -> tuple:
+        
+        """Метод возвращает текущую игру и текущий вопрос внутри нее.
+        Метод работает как для "Что? Где? Когда?", так и для Своей игры.
+        
+        Метод возвращает кортеж из трех параметров:
+        
+        - Объект игры / None если игра не найдена
+        - Объект текущего вопроса игры / None если игра не найдена или в игре нет текущего вопроса
+        - Тип игры (целое):
+                
+                1 - "Что? Где? Когда?"
+        
+                2 - Своя игра
+        
+                0 - Игра не найдена"""
+        
         chat_id = message.channel.id
         chgk_game = Game.current_game.get(chat_id)
         my_game = get_game_by_chat(chat_id=chat_id)
@@ -523,6 +579,9 @@ class Bot(Client):
 
     
     def check_host(self, message: Message) -> bool:
+        
+        """Метод проверяет, является ли игрок, приславший сообщение, ведущим Своей игры."""
+        
         player_id = message.author.id
         chat_id = message.channel.id
         if self.hosts.get(chat_id) == player_id:
@@ -531,6 +590,15 @@ class Bot(Client):
 
     
     def check_answer(self, input_string: str, answer_string: str) -> bool:
+        
+        """Метод проверки ответа на вопрос. Получает на вход две строки:
+        
+        - input_string - строка ответа из сообщения игрока
+        - answer_string - строка правильного ответа из вопроса
+        
+        Обе строки переводятся в массивы слов, приведенных к начальной форме.
+        После этого происходит поиск всех слов из ответа пользователя в правильном ответе."""
+        
         answer_list = self.normalize_string(answer_string.lower())
         input_list = self.normalize_string(input_string.lower())
         if len(input_list) == 0:
@@ -542,6 +610,11 @@ class Bot(Client):
 
     
     def normalize_string(self, input_string: str) -> list:
+        
+        """Метод переводит строку в массив слов, привденных к начальной форме.
+        Работает только для русского языка.
+        Если нужны другие языки, нужно устанавливать словари библиотеки pymorphy2."""
+        
         word_list = re.split(r'\W+', input_string)
         clean_list = [word for word in word_list if word != '']
         result_list = []

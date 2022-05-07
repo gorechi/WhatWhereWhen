@@ -14,6 +14,21 @@ new_session = Session(bind=engine)
 Base = declarative_base()
 
 class DBResult(Base):
+    
+    """
+    Класс статистики игрока в отдельном чате. 
+    
+    Содержит:
+    - chat_id - идетификатор объекта DBChat
+    - player_id - идентификатор объекта DBPlayer
+    - answers - количество правильных ответов в Что? Где? Когда?
+    - mg_wins - количество побед в Своей игре
+    
+    Дополнительные связи:
+    - player
+    - chat
+    """
+    
     __tablename__ = 'results'
     id = Column(Integer(), primary_key=True)
     chat_id = Column(Integer(), ForeignKey('chats.id'))
@@ -37,6 +52,18 @@ class DBResult(Base):
 
 
 class DBChat(Base):
+    
+    """
+    Класс чата. 
+    
+    Содержит:
+    - chat_id - идетификатор чата Discord
+    - difficulty - сложность игр Что? Где? Когда? в этом чате.
+    
+    Дополнительные связи:
+    - chat_results
+    """
+    
     __tablename__ = 'chats'
     id = Column(Integer(), primary_key=True)
     chat_id = Column(String(), nullable=False, unique=True)
@@ -47,6 +74,18 @@ class DBChat(Base):
 
 
 class DBPlayer(Base):
+    
+    """
+    Класс игрока. 
+    
+    Содержит:
+    - player_id - идентификатор игрока в Discord
+    - real_name - ник игрока в Discord
+    
+    Дополнительные связи:
+    - scores
+    """
+    
     __tablename__ = 'players'
     id = Column(Integer(), primary_key=True)
     player_id = Column(String(50), nullable=False, unique=True)
@@ -57,6 +96,20 @@ class DBPlayer(Base):
 
 
 class DBMyGame(Base):
+    
+    """
+    Класс Своей игры. 
+    
+    Содержит:
+    - chat_id - идетификатор объекта DBChat
+    - host_id - ведущий игры, идентификатор объекта DBPlayer
+    - paused - признак того, что игра находится на паузе 
+    
+    Дополнительные связи:
+    - current_theme - текущая тема игры
+    - scores - баллы игроков в данной игре
+    """
+    
     __tablename__ = 'mygame'
     id = Column(Integer(), primary_key=True)
     chat_id = Column(Integer(), ForeignKey('chats.id'))
@@ -70,6 +123,21 @@ class DBMyGame(Base):
 
 
 class DBTheme(Base):
+    
+    """
+    Класс темы Своей игры. 
+    
+    Содержит:
+    - game_id - идетификатор объекта DBMyGame
+    - name - название темы
+    - theme_index - порядковый номер темы
+    - is_played - признак того, что в теме сыграны все вопросы
+    
+    Дополнительные связи:
+    - questions - список всех вопросов игры
+    - current_question - текущий вопрос в теме
+    """
+    
     __tablename__ = 'themes'
     id = Column(Integer(), primary_key=True)
     game_id = Column(Integer(), ForeignKey('mygame.id'))
@@ -83,6 +151,15 @@ class DBTheme(Base):
     
 
 class DBCurrentTheme(Base):
+    
+    """
+    Класс текущей темы Своей игры. Служит для связки между темами и играми.
+    
+    Содержит:
+    - game_id - идетификатор объекта DBMyGame
+    - theme_id - идентификатор объекта DBTheme
+    """
+    
     __tablename__ = 'current_themes'
     id = Column(Integer(), primary_key=True)
     game_id = Column(Integer(), ForeignKey('mygame.id'))
@@ -95,6 +172,21 @@ class DBCurrentTheme(Base):
 
 
 class DBQuestion(Base):
+    
+    """
+    Класс вопроса Своей игры. 
+    
+    Содержит:
+    - theme_id - идентификатор объекта DBTheme
+    - text - текст вопроса
+    - price - стоимость вопроса в баллах
+    - answer - текст ответа на вопрос
+    - is_answered - признак того, что на вопрос уже ответили
+    
+    Дополнительные связи:
+    - theme - объект темы игры
+    """
+    
     __tablename__ = 'questions'
     id = Column(Integer(), primary_key=True)
     theme_id = Column(Integer(), ForeignKey('themes.id'))
@@ -109,6 +201,19 @@ class DBQuestion(Base):
 
 
 class DBCurrentQuestion(Base):
+    
+    """
+    Класс текущего вопроса Своей игры. Служит для связки между темами и вопросами.
+    
+    Содержит:
+    - theme_id - идентификатор объекта DBTheme
+    - question_id - идентификатор объекта DBQuestion
+    
+    Дополнительные связи:
+    - theme
+    - question
+    """
+    
     __tablename__ = 'current_questions'
     id = Column(Integer(), primary_key=True)
     theme_id = Column(Integer(), ForeignKey('themes.id'))
@@ -121,6 +226,20 @@ class DBCurrentQuestion(Base):
 
 
 class DBScore(Base):
+    
+    """
+    Класс счета игроков в Своей игре.
+    
+    Содержит:
+    - game_id - идетификатор объекта DBMyGame
+    - player_id - идентификатор объекта DBPlayer
+    - score - количество баллов, которое набрал игрок
+    
+    Дополнительные связи:
+    - player
+    - game
+    """
+    
     __tablename__ = 'mg_scores'
     id = Column(Integer(), primary_key=True)
     game_id = Column(Integer(), ForeignKey('mygame.id'))

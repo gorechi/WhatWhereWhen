@@ -4,14 +4,21 @@ from db.db_functions import get_chat, get_player
 from options import question_answered
 from sqlalchemy import desc
 
+"""Функции базы данных, связанные со Своей игрой"""
 
 def db_mg_get_scores(game:DBMyGame) -> list:
+    
+    """Функция формирует список результатов игроков в рамках игры."""
+    
     scores = session.query(DBScore).filter(DBScore.game == game).order_by(desc(DBScore.score)).all()
     print(scores)
     return scores
     
 
 def db_mg_skip_question(question:DBQuestion) -> question_answered:
+    
+    """Функция пропускает вопрос если никто на него не смог ответить."""
+    
     theme = question.theme
     question.is_answered = True
     session.commit()
@@ -22,6 +29,9 @@ def db_mg_skip_question(question:DBQuestion) -> question_answered:
 
 
 def db_mg_question_answered(question:DBQuestion, player_id:str) -> question_answered:
+    
+    """Функция фиксирует в базе правильный ответ на вопрос."""
+    
     theme = question.theme
     game = theme.game
     score = get_score(player_id=player_id, game=game)
@@ -35,6 +45,9 @@ def db_mg_question_answered(question:DBQuestion, player_id:str) -> question_answ
 
     
 def db_mg_wrong_answer(question:DBQuestion, player_id:str):
+    
+    """Функция фиксирует в базе неправильный ответ на вопрос."""
+    
     theme = question.theme
     game = theme.game
     score = get_score(player_id=player_id, game=game)
@@ -42,12 +55,18 @@ def db_mg_wrong_answer(question:DBQuestion, player_id:str):
 
 
 def db_mg_update_score(score:DBScore, value:int):
+    
+    """Функция обновляет баллы игрока."""
+    
     score.score += value
     session.add(score)
     session.commit()
 
 
 def db_mg_check_theme_is_played(theme:DBTheme) -> bool:
+    
+    """Функция проверяет, сыграна ли тема."""
+    
     unanswered_question = session.query(DBQuestion).filter(
                             DBQuestion.theme == theme,
                             DBQuestion.is_answered == False
@@ -60,15 +79,26 @@ def db_mg_check_theme_is_played(theme:DBTheme) -> bool:
     return False
 
 def db_mg_end_game(game:DBMyGame) -> list:
+    
+    """Функция окончания игры. 
+    
+    Не дописана. Нужно, чтобы она возвращала таблицу результатов."""
+    
     db_mg_delete_game(game=game)
     return
 
 def db_mg_delete_game(game:DBMyGame):
+    
+    """Функция удаляет игру."""
+    
     session.delete(game)
     session.commit()
 
 
 def db_mg_delete_current_theme(game: DBMyGame):
+    
+    """Функция убирает из игры текущую тему."""
+    
     current_theme = session.query(DBCurrentTheme).filter(DBCurrentTheme.game == game).first()
     if current_theme:
         session.delete(current_theme)
@@ -76,6 +106,9 @@ def db_mg_delete_current_theme(game: DBMyGame):
 
 
 def db_mg_set_current_theme(game: DBMyGame, theme: DBTheme) -> DBCurrentTheme:
+    
+    """Функция добавляет в игру текущую тему."""
+    
     current_theme = session.query(DBCurrentTheme).filter(DBCurrentTheme.game == game).first()
     if current_theme:
         if current_theme.theme == theme:
@@ -90,6 +123,9 @@ def db_mg_set_current_theme(game: DBMyGame, theme: DBTheme) -> DBCurrentTheme:
 
 
 def db_mg_set_current_question(theme: DBTheme, question: DBQuestion) -> DBCurrentQuestion:
+    
+    """Функция добавляет в тему текущий вопрос."""
+    
     current_question = session.query(DBCurrentQuestion).filter(
         DBCurrentQuestion.theme == theme, 
         DBCurrentQuestion.question == question).first()
@@ -106,11 +142,17 @@ def db_mg_set_current_question(theme: DBTheme, question: DBQuestion) -> DBCurren
 
 
 def db_mg_update_game(game: DBMyGame):
+    
+    """Функция обновляет данные в базе."""
+    
     session.add(game)
     session.commit()
 
 
 def get_game_themes(game: DBMyGame) -> list:
+    
+    """Функция возвращает список названий всех тем игры."""
+    
     result_game = session.query(DBMyGame).filter(
         DBMyGame.id == game.id).first()
     themes = result_game.themes
@@ -118,12 +160,18 @@ def get_game_themes(game: DBMyGame) -> list:
 
 
 def get_game_by_chat(chat_id: str) -> DBMyGame:
+    
+    """Функция возвращает Свою игру, запущенную в чате."""
+    
     chat = get_chat(chat_id=chat_id)
     game = session.query(DBMyGame).filter(DBMyGame.chat == chat).first()
     return game
 
 
-def get_score(player_id: str, game: DBMyGame) -> DBScore:
+def get_score(player_id: str, game: DBMyGame) -> DBScore|bool:
+    
+    """Функция получения баллов игрока."""
+    
     player = get_player(player_id)
     if not game:
         return False
@@ -137,7 +185,10 @@ def get_score(player_id: str, game: DBMyGame) -> DBScore:
     return score
 
 
-def change_score(player_id: str, game_id: str, value: int):
+def change_score(player_id: str, game_id: str, value: int) -> bool|None:
+    
+    """Функция изменения баллов игрока."""
+    
     score = get_score(player_id=player_id, game_id=game_id)
     if not score:
         return False
@@ -147,6 +198,10 @@ def change_score(player_id: str, game_id: str, value: int):
 
 
 def create_game_from_list(chat_id: str, host_id: str, themes_list: list) -> DBMyGame:
+    
+    """Функция создания новой Своей игры из данных, полученных с сайта. 
+    Принимает на вход подготовленную структуру данных и создает из нее записи в БД."""
+    
     chat = get_chat(chat_id)
     host = get_player(host_id)
     game = DBMyGame(chat=chat, host=host)

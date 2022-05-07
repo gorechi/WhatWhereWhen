@@ -1,21 +1,25 @@
 
+"""Вспомогательные функции для Своей игры"""
+
 import re
 import requests
 import untangle
 from db.db import DBMyGame, DBQuestion, DBTheme
-from discord import Message
-from time import sleep
-from options import game_state
-
 from db.db_functions_mg import create_game_from_list
 
 
 def split_questions(text: str) -> list:
+    
+    """Функция делит вопросы, пришедшие с сервера в виде одной строки."""
+    
     result = re.split('\n   \d+. ', text)
     return result
 
 
-def setup_game(chat_id:str, host_id:str) -> bool:
+def setup_game(chat_id:str, host_id:str) -> dict:
+    
+    """Функция запрашивает с сайта вопросы игры и формирует из них объект игры"""
+    
     request_string = 'https://db.chgk.info/xml/random/types5/limit15'
     request = requests.get(request_string)
     if request.status_code != 200:
@@ -44,6 +48,9 @@ def setup_game(chat_id:str, host_id:str) -> bool:
 
 
 def get_themes_text(game:DBMyGame) -> str:
+    
+    """Функция формирует список тем Своей игры. Сыгранные темы перечеркиваются."""
+    
     themes = game.themes
     themes_text = 'Темы игры:\n'
     for theme in themes:
@@ -55,6 +62,9 @@ def get_themes_text(game:DBMyGame) -> str:
 
 
 def get_current_theme(game:DBMyGame) -> DBTheme:
+    
+    """Функция возвращает текущую тему для игры."""
+    
     game_current_theme = game.current_theme
     if game_current_theme:
         current_theme = game_current_theme.theme
@@ -63,6 +73,9 @@ def get_current_theme(game:DBMyGame) -> DBTheme:
 
 
 def get_current_question(theme:DBTheme) -> DBQuestion:
+    
+    """Функция возвращает текущий вопрос для темы."""
+    
     theme_current_question = theme.current_question
     if theme_current_question:
         current_question = theme_current_question.question
@@ -71,6 +84,9 @@ def get_current_question(theme:DBTheme) -> DBQuestion:
     
     
 def get_mg_question(game:DBMyGame) -> DBQuestion:
+    
+    """Функция возвращает текущий вопрос для игры."""
+    
     current_theme = get_current_theme(game=game)
     if not current_theme:
         return False
@@ -81,6 +97,9 @@ def get_mg_question(game:DBMyGame) -> DBQuestion:
 
 
 def get_theme_by_index(game:DBMyGame, theme_index:int) -> DBTheme:
+    
+    """Функция возвращает тему игры по ее порядковому номеру."""
+    
     theme = game.themes[theme_index-1]
     if theme.is_played:
         return None, None
@@ -92,6 +111,9 @@ def get_theme_by_index(game:DBMyGame, theme_index:int) -> DBTheme:
 
 
 def get_theme_next_question(theme:DBTheme) -> DBQuestion:
+    
+    """Функция возвращает следующий вопрос из указанной темы."""
+    
     questions = [q for q in theme.questions if not q.is_answered]
     if questions:
         return questions[0]
@@ -100,6 +122,9 @@ def get_theme_next_question(theme:DBTheme) -> DBQuestion:
 
 
 def get_question_text(question:DBQuestion) -> str:
+    
+    """Функция формирует текст вопроса для его вывода в чат."""
+    
     question_text = f'Тема: {question.theme.name}\n'
     question_text += f'Вопрос за {question.price}:\n'
     question_text += '=' * 30 + '\n'
