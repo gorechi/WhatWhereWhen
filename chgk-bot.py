@@ -135,7 +135,7 @@ class Bot(Client):
     
     async def theme(self, message: Message) -> None:
         
-        """Метод запроса темы в Своей игре. Запускается по команде типа "!3", которая соответствует теме №3. 
+        """Метод запроса темы в Своей игре. Запускается по команде типа "!n", которая соответствует теме №n. 
         Запрашивает текущую игру и проверяет тему на предмет того, что она уже сыграна. 
         Выдает в чат следующий вопрос запрошенной темы. """
         
@@ -475,37 +475,55 @@ class Bot(Client):
     
     async def beep_timer(self, question:DBQuestion, message:Message, state:game_state):
         
-        """Метод запускает дополнительный процесс таймера и отслеживает, 
-        попытался ли кто-то из игроков ответить на вопрос. Если никто не хочет отвечать,
-        вопрос снимается из игры, в чат отправляется сообщение с правильным ответом.
-        Длительность таймера в секундах регулируется значением n в range(n)."""
+        """Метод запускает таймер и ждет изменения состояния игры. 
+        Если по истечении таймера состояние игры осталось прежним, то запускается 
+        метод сброса состояния игры. Метод обрабатывает два состояния:
+        - WAITING_FOR_BUTTON - ожидание нажатия кнопки игроками
+        - ANSWERING - ожидание ответа игрока, который нажал на кнопку"""
         
         chat_id = message.channel.id
-        player_id = message.author.id
-        player_name = message.author.display_name
+        functions = {
+            game_state.WAITING_FOR_BUTTON: self.reset_waiting_for_button,
+            game_state.ANSWERING: self.reset_answering
+        }
         for _ in range(timer_values[state]):
             if self.game_states.get(chat_id) != state:
                 return
             await async_sleep(1)
-        if state == game_state.WAITING_FOR_BUTTON:
-            skipped_status = db_mg_skip_question(question=question)
-            self.clear_played(chat_id=chat_id)
-            self.game_states[chat_id] = None
-            reply = f':stopwatch:  Время вышло.\n'
-            reply += f'Правильный ответ: {question.answer}\n'
-            if skipped_status == question_answered.THEME:
-                reply += f'Тема "{question.theme.name}" закончена. Нужно выбрать другую тему.\n'
-            await message.channel.send(reply)
-        elif state == game_state.ANSWERING:
-            db_mg_wrong_answer(question=question, player_id=player_id)
-            reply = f'{choice(emojis.get("wrong"))} {player_name} слишком долго думал и потерял {question.price} баллов.\n'
-            reply += f'Оставшиеся игроки могут нажать на кнопку после БИПа.'
-            self.add_played(chat_id=chat_id, player_id=player_id)
-            await message.channel.send(reply)
-            await self.beep(question=question, message=message)
-            
-            return False
+        await functions[state](question=question, message=message)
 
+    
+    async def reset_waiting_for_button(self, question:DBQuestion, message:Message):
+        
+        """Метод выполняется если никто не нажал на кнопку. 
+        Метод закрывает вопрос, проверяет, закрыта ли тема, и выдает информацию в чат."""
+        
+        chat_id = message.channel.id
+        skipped_status = db_mg_skip_question(question=question)
+        self.clear_played(chat_id=chat_id)
+        self.game_states[chat_id] = None
+        reply = f':stopwatch:  Время вышло.\n'
+        reply += f'Правильный ответ: {question.answer}\n'
+        if skipped_status == question_answered.THEME:
+            reply += f'Тема "{question.theme.name}" закончена. Нужно выбрать другую тему.\n'
+        await message.channel.send(reply)
+    
+    
+    async def reset_answering(self, question:DBQuestion, message:Message):
+        
+        """Метод выполняется если игрок не дал ответ на вопрос после нажатия на кнопку.
+        Метод делает так, что вопрос считается неотвеченным и снова запускает БИП."""
+        
+        chat_id = message.channel.id
+        player_id = message.author.id
+        player_name = message.author.display_name
+        db_mg_wrong_answer(question=question, player_id=player_id)
+        reply = f'{choice(emojis.get("wrong"))} {player_name} слишком долго думал и потерял {question.price} баллов.\n'
+        reply += f'Оставшиеся игроки могут нажать на кнопку после БИПа.'
+        self.add_played(chat_id=chat_id, player_id=player_id)
+        await message.channel.send(reply)
+        await self.beep(question=question, message=message)
+    
     
     def check_answering_player(self, message:Message) -> bool:
         
