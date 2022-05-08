@@ -328,7 +328,7 @@ class Bot(Client):
         if game_type == 1:
             await message.channel.send('Прекратите хулиганить! У вас уже есть запущенная игра.',
                                        mention_author=True)
-        elif game_type == 2:
+        elif game_type == 2 and not current_game.paused:
             await message.channel.send('Сначала доиграйте в Свою игру',
                                        mention_author=True)
         else:
