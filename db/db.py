@@ -66,7 +66,7 @@ class DBChat(Base):
     
     __tablename__ = 'chats'
     id = Column(Integer(), primary_key=True)
-    chat_dscord_id = Column(String(), nullable=False, unique=True)
+    chat_discord_id = Column(String(), nullable=False, unique=True)
     difficulty = Column(Integer(), nullable=True, default=0)
 
     def __repr__(self):

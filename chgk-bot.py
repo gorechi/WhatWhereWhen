@@ -55,6 +55,11 @@ class Bot(Client):
         объект сообщения чата Message. Дальнейшая логика обработки этого сообщения должна быть реализована уже
         в запускаемом методе.
         
+        The method processing a message from a chat.
+        It is responds to certain message text patterns and calls the corresponding bot methods.
+        All bot methods that are called from here must take one required parameter -
+        chat message object Message. Further logic for processing this message should be implemented
+        in the called method. 
         """
         
         chat_id = message.channel.id
@@ -63,6 +68,15 @@ class Bot(Client):
             return
 
         content = message.content
+        
+        difficulty_list = [
+            '!сложность 0',
+            '!сложность 1',
+            '!сложность 2',
+            '!сложность 3',
+            '!сложность 4',
+            '!сложность 5',
+        ]
 
         commands = {
             content.startswith('!факт'): self.fact,
@@ -76,8 +90,8 @@ class Bot(Client):
             content.startswith('!темы'): self.themes,
             content.startswith('!таблица'): self.table,
             content == '!!': self.pause,
+            content.lower() in difficulty_list: self.difficulty,
             re.fullmatch('!([1-9]|1[0-5])', content.lower()) and self.check_host(message): self.theme,
-            re.match('!сложность [0-5]', message.content): self.difficulty,
             not content.startswith('!'): self.plain_text
         }
 
@@ -88,7 +102,12 @@ class Bot(Client):
 
     async def pause(self, message:Message) -> None:
         
-        """Метод ставит текущую Свою игру на паузу"""
+        """
+        Метод ставит текущую Свою игру на паузу.
+        
+        The method pauses the current My game.
+        
+        """
         
         game, question, game_type = self.get_current_game_and_question(
             message=message)
@@ -111,7 +130,12 @@ class Bot(Client):
     
     async def table(self, message: Message) -> None:
         
-        """Метод выводит в чат таблицу результатов в Своей игре."""
+        """
+        Метод выводит в чат таблицу результатов в Своей игре.
+        
+        The method sends a My game results table to the chat.
+        
+        """
         
         game, question, game_type = self.get_current_game_and_question(
             message=message)
@@ -126,7 +150,12 @@ class Bot(Client):
     
     async def themes(self, message: Message) -> None:
         
-        """Метод выводит в чат список тем запущенной игры."""
+        """
+        Метод выводит в чат список тем запущенной игры.
+        
+        The method sends a list of the My game themes to the chat.
+        
+        """
         
         game, question, game_type = self.get_current_game_and_question(
             message=message)
@@ -140,8 +169,8 @@ class Bot(Client):
     
     async def theme(self, message: Message) -> None:
         
-        """Метод запроса темы в Своей игре. Запускается по команде типа "!n", которая соответствует теме №n. 
-        Запрашивает текущую игру и проверяет тему на предмет того, что она уже сыграна. 
+        """
+        Метод запрашивает тему текущей игры и проверяет ее на предмет того, что она уже сыграна. 
         Выдает в чат следующий вопрос запрошенной темы. 
         
         """
@@ -364,6 +393,7 @@ class Bot(Client):
         
         """
         
+        print('сложность')
         chat_id = message.channel.id
         difficulty = int(message.content[11])
         difficulty_list = ['любые', 'очень простые',
