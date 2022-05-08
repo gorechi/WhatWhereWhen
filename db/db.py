@@ -57,7 +57,7 @@ class DBChat(Base):
     Класс чата. 
     
     Содержит:
-    - chat_id - идетификатор чата Discord
+    - chat_discord_id - идетификатор чата Discord
     - difficulty - сложность игр Что? Где? Когда? в этом чате.
     
     Дополнительные связи:
@@ -66,7 +66,7 @@ class DBChat(Base):
     
     __tablename__ = 'chats'
     id = Column(Integer(), primary_key=True)
-    chat_id = Column(String(), nullable=False, unique=True)
+    chat_dscord_id = Column(String(), nullable=False, unique=True)
     difficulty = Column(Integer(), nullable=True, default=0)
 
     def __repr__(self):
@@ -79,7 +79,7 @@ class DBPlayer(Base):
     Класс игрока. 
     
     Содержит:
-    - player_id - идентификатор игрока в Discord
+    - player_discord_id - идентификатор игрока в Discord
     - real_name - ник игрока в Discord
     
     Дополнительные связи:
@@ -88,7 +88,7 @@ class DBPlayer(Base):
     
     __tablename__ = 'players'
     id = Column(Integer(), primary_key=True)
-    player_id = Column(String(50), nullable=False, unique=True)
+    player_discord_id = Column(String(50), nullable=False, unique=True)
     real_name = Column(String(50), nullable=True, unique=False)
 
     def __repr__(self):
@@ -144,7 +144,10 @@ class DBTheme(Base):
     name = Column(String(150), nullable=False, unique=False)
     theme_index = Column(Integer())
     is_played = Column(Boolean(), default=False)
-    game = relationship('DBMyGame', backref=backref('themes', order_by=id, cascade="all, delete-orphan"))
+    game = relationship('DBMyGame', 
+                        backref=backref('themes', 
+                                        order_by=id, 
+                                        cascade="all, delete-orphan"))
     
     def __repr__(self):
         return f'<Тема: index = {self.theme_index}, name = {self.name}>'
@@ -164,7 +167,11 @@ class DBCurrentTheme(Base):
     id = Column(Integer(), primary_key=True)
     game_id = Column(Integer(), ForeignKey('mygame.id'))
     theme_id = Column(Integer(), ForeignKey('themes.id'))
-    game = relationship('DBMyGame', uselist=False, backref=backref('current_theme', order_by=game_id, cascade="all, delete-orphan", uselist=False))
+    game = relationship('DBMyGame', uselist=False, 
+                        backref=backref('current_theme', 
+                                        order_by=game_id, 
+                                        cascade="all, delete-orphan", 
+                                        uselist=False))
     theme = relationship('DBTheme', uselist=False)
     
     def __repr__(self):
@@ -194,7 +201,10 @@ class DBQuestion(Base):
     price = Column(Integer(), nullable=False)
     answer = Column(String(), nullable=False)
     is_answered = Column(Boolean(), default=False)
-    theme = relationship('DBTheme', backref=backref('questions', order_by=id, cascade="all, delete-orphan"))
+    theme = relationship('DBTheme', 
+                         backref=backref('questions', 
+                                         order_by=id, 
+                                         cascade="all, delete-orphan"))
     
     def __repr__(self):
         return f'<Вопрос: price = {self.price}, is_answered = {self.is_answered}>'
@@ -218,8 +228,14 @@ class DBCurrentQuestion(Base):
     id = Column(Integer(), primary_key=True)
     theme_id = Column(Integer(), ForeignKey('themes.id'))
     question_id = Column(Integer(), ForeignKey('questions.id'))
-    theme = relationship('DBTheme', uselist=False, backref=backref('current_question', order_by=question_id, cascade="all, delete-orphan", uselist=False))
-    question = relationship('DBQuestion', uselist=False)
+    theme = relationship('DBTheme', 
+                         uselist=False, 
+                         backref=backref('current_question', 
+                                         order_by=question_id, 
+                                         cascade="all, delete-orphan", 
+                                         uselist=False))
+    question = relationship('DBQuestion', 
+                            uselist=False)
     
     def __repr__(self):
         return f'<Текущий вопрос: theme = {self.theme}, question = {self.question}>'    
@@ -245,8 +261,16 @@ class DBScore(Base):
     game_id = Column(Integer(), ForeignKey('mygame.id'))
     player_id = Column(Integer(), ForeignKey('players.id'))
     score = Column(Integer(), default=0)
-    player = relationship('DBPlayer', uselist=False, backref=backref('scores', order_by=player_id, cascade="all, delete-orphan"))
-    game = relationship('DBMyGame', uselist=False, backref=backref('scores', order_by=game_id, cascade="all, delete-orphan"))
+    player = relationship('DBPlayer', 
+                          uselist=False, 
+                          backref=backref('scores', 
+                                          order_by=player_id, 
+                                          cascade="all, delete-orphan"))
+    game = relationship('DBMyGame', 
+                        uselist=False, 
+                        backref=backref('scores', 
+                                        order_by=game_id, 
+                                        cascade="all, delete-orphan"))
     
     def __repr__(self):
         return f'<Счет: player = {self.player}, score = {self.score}>'

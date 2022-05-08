@@ -72,7 +72,7 @@ class Bot(Client):
             content.startswith('!таблица'): self.table,
             content == '!!': self.pause,
             re.fullmatch('!([1-9]|1[0-5])', content.lower()) and self.check_host(message): self.theme,
-            re.fullmatch('!сложность [0-5]', content.lower()): self.difficulty,
+            re.match('!сложность [0-5]', message.content): self.difficulty,
             not content.startswith('!'): self.plain_text
         }
 

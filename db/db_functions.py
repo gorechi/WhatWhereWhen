@@ -19,9 +19,9 @@ def get_chat(chat_id: str) -> DBChat:
     
     """Функция возвращает объект чата DBChat по его идентификатору в Discord"""
     
-    chat = session.query(DBChat).filter(DBChat.chat_id == str(chat_id)).first()
+    chat = session.query(DBChat).filter(DBChat.chat_discord_id == str(chat_id)).first()
     if not chat:
-        chat = DBChat(chat_id=chat_id)
+        chat = DBChat(chat_discord_id=chat_id)
         session.add(chat)
         session.commit()
     return chat
@@ -43,9 +43,9 @@ def get_player(player_id: str) -> DBPlayer:
     """Функция возвращает объект игрока DBPlayer по его идентификатору в Discord."""
     
     player = session.query(DBPlayer).filter(
-        DBPlayer.player_id == player_id).first()
+        DBPlayer.player_discord_id == player_id).first()
     if not player:
-        player = DBPlayer(player_id=player_id)
+        player = DBPlayer(player_discord_id=player_id)
         session.add(player)
         session.commit()
     return player
