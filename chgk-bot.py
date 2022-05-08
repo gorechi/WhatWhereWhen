@@ -375,8 +375,8 @@ class Bot(Client):
             await message.channel.send('Вы еще не начали игру, а уже хотите ее закончить.')
         elif game_type == 1:
             await message.channel.send('Игра закончена.')
-            current_game.get(chat_id).end_game()
-            current_game.pop(chat_id, False)
+            Game.current_game.get(chat_id).end_game()
+            Game.current_game.pop(chat_id, False)
         elif game_type == 2: 
             if self.check_host(message):
                 results = db_mg_end_game(current_game)
