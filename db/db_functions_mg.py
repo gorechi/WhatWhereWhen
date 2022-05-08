@@ -172,7 +172,7 @@ def get_game_by_chat(chat_id: str) -> DBMyGame:
     return game
 
 
-def get_score(player_id: str, game: DBMyGame) -> DBScore|bool:
+def get_score(player_id: str, game: DBMyGame) -> DBScore:
     
     """Функция получения баллов игрока."""
     
@@ -189,7 +189,7 @@ def get_score(player_id: str, game: DBMyGame) -> DBScore|bool:
     return score
 
 
-def change_score(player_id: str, game_id: str, value: int) -> bool|None:
+def change_score(player_id: str, game_id: str, value: int) -> bool:
     
     """Функция изменения баллов игрока."""
     
