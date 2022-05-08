@@ -200,10 +200,15 @@ class Bot(Client):
         Если запущенной игры нет, создает новую игру, делает отправившего команду игрока ведущим.
         
         """
+        game, question, game_type = self.get_current_game_and_question(
+            message=message)
         
         chat_id = message.channel.id
         player_id = message.author.id
-        game = get_game_by_chat(chat_id=chat_id)
+
+        if game and game_type == 1:
+            await message.channel.send('У вас запущена игра Что? Где? Когда? Доиграйте или закончите ее, а потом уже начинайте Свою игру.')
+            return
         if not game:
             game = setup_game(chat_id=chat_id, host_id=player_id)
         elif game.paused:
@@ -650,7 +655,7 @@ class Bot(Client):
                 1 - "Что? Где? Когда?"
         
                 2 - Своя игра
-        
+                
                 0 - Игра не найдена
                 
         """
