@@ -111,7 +111,7 @@ class Bot(Client):
         
         game, question, game_type = self.get_current_game_and_question(
             message=message)
-        if game and game_type == 2 and not game.paused and self.check_host(message=message):
+        if game and game_type == 2 and not game.paused:
             chat_id = message.channel.id
             game.paused = True
             game.host = None
