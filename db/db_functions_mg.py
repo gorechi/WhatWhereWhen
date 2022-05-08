@@ -1,10 +1,12 @@
+
+"""Функции базы данных, связанные со Своей игрой"""
+
 from db.db import DBMyGame, DBPlayer, DBQuestion, DBScore, DBTheme, DBCurrentTheme, DBCurrentQuestion
 from db.db import new_session as session
 from db.db_functions import get_chat, get_player
 from options import question_answered
 from sqlalchemy import desc
 
-"""Функции базы данных, связанные со Своей игрой"""
 
 def db_mg_get_scores(game:DBMyGame) -> list:
     
@@ -82,7 +84,9 @@ def db_mg_end_game(game:DBMyGame) -> list:
     
     """Функция окончания игры. 
     
-    Не дописана. Нужно, чтобы она возвращала таблицу результатов."""
+    Не дописана. Нужно, чтобы она возвращала таблицу результатов.
+    
+    """
     
     db_mg_delete_game(game=game)
     return
@@ -200,7 +204,9 @@ def change_score(player_id: str, game_id: str, value: int) -> bool|None:
 def create_game_from_list(chat_id: str, host_id: str, themes_list: list) -> DBMyGame:
     
     """Функция создания новой Своей игры из данных, полученных с сайта. 
-    Принимает на вход подготовленную структуру данных и создает из нее записи в БД."""
+    Принимает на вход подготовленную структуру данных и создает из нее записи в БД.
+    
+    """
     
     chat = get_chat(chat_id)
     host = get_player(host_id)

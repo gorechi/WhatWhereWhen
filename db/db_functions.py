@@ -1,7 +1,8 @@
+"""Функции базы данных, связанные с "Что? Где? Когда?" """
+
 from db.db import new_session as session, DBChat, DBPlayer, DBResult
 from sqlalchemy import select, desc
 
-"""Функции базы данных, связанные с "Что? Где? Когда?" """
 
 def update_player_name(player_id:str, real_name:str) -> str:
     

@@ -66,7 +66,11 @@ class DBChat(Base):
     
     __tablename__ = 'chats'
     id = Column(Integer(), primary_key=True)
+<<<<<<< Updated upstream
     chat_dscord_id = Column(String(), nullable=False, unique=True)
+=======
+    chat_discord_id = Column(String(), nullable=False, unique=True)
+>>>>>>> Stashed changes
     difficulty = Column(Integer(), nullable=True, default=0)
 
     def __repr__(self):
@@ -156,23 +160,37 @@ class DBTheme(Base):
 class DBCurrentTheme(Base):
     
     """
-    Класс текущей темы Своей игры. Служит для связки между темами и играми.
+    Класс текущей темы Своей игры. Служит для связки между темами и Своей игрой.
     
     Содержит:
     - game_id - идетификатор объекта DBMyGame
     - theme_id - идентификатор объекта DBTheme
+    
+    Дополнительные связи:
+    - theme
+    - game
     """
     
     __tablename__ = 'current_themes'
     id = Column(Integer(), primary_key=True)
     game_id = Column(Integer(), ForeignKey('mygame.id'))
     theme_id = Column(Integer(), ForeignKey('themes.id'))
+<<<<<<< Updated upstream
     game = relationship('DBMyGame', uselist=False, 
+=======
+    game = relationship('DBMyGame', 
+                        uselist=False, 
+>>>>>>> Stashed changes
                         backref=backref('current_theme', 
                                         order_by=game_id, 
                                         cascade="all, delete-orphan", 
                                         uselist=False))
+<<<<<<< Updated upstream
     theme = relationship('DBTheme', uselist=False)
+=======
+    theme = relationship('DBTheme', 
+                         uselist=False)
+>>>>>>> Stashed changes
     
     def __repr__(self):
         return f'<Текущая тема: game = {self.game}, theme = {self.theme}>'

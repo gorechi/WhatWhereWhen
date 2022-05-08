@@ -1,8 +1,6 @@
-s = 'Кошка'
+import re
 
-def reverse_capitalize(input_string:str) -> str:
-    output_string = input_string[-1::-1].lower().capitalize()
-    return output_string
+s = '!сложность 4'
 
-print(s)
-print(reverse_capitalize(s))
+print(re.fullmatch('!сложность [0-5]', s.lower()))
+print(re.fullmatch('!([1-9]|1[0-5])', s.lower()))
