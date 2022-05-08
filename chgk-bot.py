@@ -143,7 +143,7 @@ class Bot(Client):
             scores = db_mg_get_scores(game=game)
             reply = '```Текущие результаты таковы:\n'
             for score in scores:
-                reply += '{:3} - {}\n'.format(score.score, score.player.real_name)
+                reply += '{:4} - {}\n'.format(score.score, score.player.real_name)
             reply += '```'
             await message.channel.send(reply)
     
@@ -329,7 +329,7 @@ class Bot(Client):
             await message.channel.send('Прекратите хулиганить! У вас уже есть запущенная игра.',
                                        mention_author=True)
         elif game_type == 2 and not current_game.paused:
-            await message.channel.send('Сначала доиграйте в Свою игру',
+            await message.channel.send('Сначала доиграйте в Свою игру или поставьте ее на паузу (команда "!!")',
                                        mention_author=True)
         else:
             game = Game(chat_id, True)
