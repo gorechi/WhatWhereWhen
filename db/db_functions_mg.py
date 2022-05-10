@@ -3,17 +3,26 @@
 
 from db.db import DBMyGame, DBPlayer, DBQuestion, DBScore, DBTheme, DBCurrentTheme, DBCurrentQuestion
 from db.db import new_session as session
-from db.db_functions import get_chat, get_player
+from db.db_functions import get_chat, get_player, get_result
 from options import question_answered
 from sqlalchemy import desc
 
+
+def db_mg_set_winner_score(player:DBPlayer, chat_id:str) -> None:
+    
+    """Функция записывает в базу победителя Своей игры."""
+
+    player_id = player.player_discord_id
+    result = get_result(player_id=player_id, chat_id=chat_id)
+    result.mg_wins += 1
+    session.commit()
+    
 
 def db_mg_get_scores(game:DBMyGame) -> list:
     
     """Функция формирует список результатов игроков в рамках игры."""
     
     scores = session.query(DBScore).filter(DBScore.game == game).order_by(desc(DBScore.score)).all()
-    print(scores)
     return scores
     
 
@@ -22,10 +31,14 @@ def db_mg_skip_question(question:DBQuestion) -> question_answered:
     """Функция пропускает вопрос если никто на него не смог ответить."""
     
     theme = question.theme
+    game = theme.game
     question.is_answered = True
     session.commit()
     theme_is_played = db_mg_check_theme_is_played(theme)
     if theme_is_played:
+        game_is_finished = db_mg_check_game_is_finished(game=game)
+        if game_is_finished:
+            return question_answered.GAME
         return question_answered.THEME
     return question_answered.ONLY_QUESTION
 
@@ -42,6 +55,9 @@ def db_mg_question_answered(question:DBQuestion, player_id:str) -> question_answ
     session.commit()
     theme_is_played = db_mg_check_theme_is_played(theme)
     if theme_is_played:
+        game_is_finished = db_mg_check_game_is_finished(game=game)
+        if game_is_finished:
+            return question_answered.GAME
         return question_answered.THEME
     return question_answered.ONLY_QUESTION
 
@@ -65,6 +81,19 @@ def db_mg_update_score(score:DBScore, value:int):
     session.commit()
 
 
+def db_mg_check_game_is_finished(game:DBMyGame) -> bool:
+    
+    """Функция проверяет, закончена ли Своя игра."""
+    
+    unfinished_theme = session.query(DBTheme).filter(
+                                            DBTheme.game == game,
+                                            DBTheme.is_played == False
+                                            ).first()
+    if unfinished_theme:
+        return False
+    return True
+
+
 def db_mg_check_theme_is_played(theme:DBTheme) -> bool:
     
     """Функция проверяет, сыграна ли тема."""
@@ -80,16 +109,26 @@ def db_mg_check_theme_is_played(theme:DBTheme) -> bool:
         return True
     return False
 
-def db_mg_end_game(game:DBMyGame) -> list:
+
+def db_mg_end_game(game:DBMyGame) -> str:
     
     """Функция окончания игры. 
     
-    Не дописана. Нужно, чтобы она возвращала таблицу результатов.
+    Возвращает имя победившего игрока.
     
     """
     
+    scores = db_mg_get_scores(game=game)
+    winner_name = None
+    chat_id = game.chat.chat_discord_id
+    if bool(scores):
+        best_score = scores[0]
+        if best_score.score > 0:
+            db_mg_set_winner_score(player=best_score.player, chat_id=chat_id)
+            winner_name = best_score.player.real_name
     db_mg_delete_game(game=game)
-    return
+    return winner_name
+
 
 def db_mg_delete_game(game:DBMyGame):
     

@@ -4,8 +4,9 @@
 import re
 import requests
 import untangle
-from db.db import DBMyGame, DBQuestion, DBTheme
-from db.db_functions_mg import create_game_from_list
+from discord import Message
+from db.db import DBMyGame, DBQuestion, DBScore, DBTheme
+from db.db_functions_mg import create_game_from_list, db_mg_end_game, db_mg_get_scores, db_mg_set_winner_score
 
 
 def split_questions(text: str) -> list:
@@ -130,4 +131,15 @@ def get_question_text(question:DBQuestion) -> str:
     question_text += '=' * 30 + '\n'
     question_text += f'{question.text}'
     return question_text
-        
+
+
+def get_scores_table(game:DBMyGame) -> str:
+    
+    """Функция формирует строку для вывода в чат таблицы результатов Своей игры."""
+    
+    scores = db_mg_get_scores(game=game)
+    reply = '```Текущие результаты таковы:\n'
+    for score in scores:
+        reply += '{:4} - {}\n'.format(score.score, score.player.real_name)
+    reply += '```'
+    return reply        
