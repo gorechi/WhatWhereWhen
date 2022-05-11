@@ -2,11 +2,12 @@
 """Вспомогательные функции для Своей игры"""
 
 import re
+
 import requests
 import untangle
-from discord import Message
-from db.db import DBMyGame, DBQuestion, DBScore, DBTheme
-from db.db_functions_mg import create_game_from_list, db_mg_end_game, db_mg_get_scores, db_mg_set_winner_score
+
+from db.db import DBMyGame, DBQuestion, DBTheme
+from db.db_functions_mg import create_game_from_list, db_mg_get_scores
 
 
 def split_questions(text: str) -> list:

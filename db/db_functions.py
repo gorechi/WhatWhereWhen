@@ -1,7 +1,9 @@
 """Функции базы данных, связанные с "Что? Где? Когда?" """
 
-from db.db import new_session as session, DBChat, DBPlayer, DBResult
-from sqlalchemy import select, desc
+from sqlalchemy import desc, select
+
+from db.db import DBChat, DBPlayer, DBResult
+from db.db import new_session as session
 
 
 def update_player_name(player_id:str, real_name:str) -> str:
@@ -44,7 +46,7 @@ def get_player(player_id: str) -> DBPlayer:
     """Функция возвращает объект игрока DBPlayer по его идентификатору в Discord."""
     
     player = session.query(DBPlayer).filter(
-        DBPlayer.player_discord_id == player_id).first()
+            DBPlayer.player_discord_id == player_id).first()
     if not player:
         player = DBPlayer(player_discord_id=player_id)
         session.add(player)

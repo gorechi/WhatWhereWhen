@@ -1,11 +1,15 @@
 
 """Функции базы данных, связанные со Своей игрой"""
 
-from db.db import DBMyGame, DBPlayer, DBQuestion, DBScore, DBTheme, DBCurrentTheme, DBCurrentQuestion
-from db.db import new_session as session
-from db.db_functions import get_chat, get_player, get_result
+from discord import Message
 from options import question_answered
 from sqlalchemy import desc
+
+from db.db import (DBCurrentQuestion, DBCurrentTheme, DBMyGame, DBPlayer,
+                   DBQuestion, DBScore, DBTheme)
+from db.db import new_session as session
+from db.db_functions import (get_chat, get_player, get_result,
+                             update_player_name)
 
 
 def db_mg_set_winner_score(player:DBPlayer, chat_id:str) -> None:
@@ -43,10 +47,12 @@ def db_mg_skip_question(question:DBQuestion) -> question_answered:
     return question_answered.ONLY_QUESTION
 
 
-def db_mg_question_answered(question:DBQuestion, player_id:str) -> question_answered:
+def db_mg_question_answered(question:DBQuestion, message:Message) -> question_answered:
     
     """Функция фиксирует в базе правильный ответ на вопрос."""
     
+    player_id = message.autor.id
+    update_player_name(player_id=player_id, real_name=message.author.display_name)
     theme = question.theme
     game = theme.game
     score = get_score(player_id=player_id, game=game)
@@ -62,12 +68,14 @@ def db_mg_question_answered(question:DBQuestion, player_id:str) -> question_answ
     return question_answered.ONLY_QUESTION
 
     
-def db_mg_wrong_answer(question:DBQuestion, player_id:str):
+def db_mg_wrong_answer(question:DBQuestion, message:Message):
     
     """Функция фиксирует в базе неправильный ответ на вопрос."""
     
     theme = question.theme
     game = theme.game
+    player_id = message.autor.id
+    update_player_name(player_id=player_id, real_name=message.author.display_name)
     score = get_score(player_id=player_id, game=game)
     db_mg_update_score(score=score, value=(0-question.price))
 

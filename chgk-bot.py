@@ -1,22 +1,28 @@
-import requests
 import re
-from random import randint as r, choice
-from time import sleep
 from asyncio import sleep as async_sleep
+from random import choice
+from random import randint as r
+from time import sleep
 
-from pymorphy2 import MorphAnalyzer
-from discord import Message, Client, Embed
+import requests
 from bs4 import BeautifulSoup
+from discord import Client, Embed, Message
+from pymorphy2 import MorphAnalyzer
 
-from db.db_functions_mg import db_mg_end_game, db_mg_question_answered
-from db.db_functions_mg import db_mg_skip_question, db_mg_update_game, db_mg_wrong_answer
-from db.db_functions_mg import get_game_by_chat, db_mg_set_current_theme, db_mg_set_current_question
-from functions_mg import get_scores_table, get_themes_text, setup_game, get_theme_by_index, get_mg_question, get_question_text
+from classes.classGame import Game
 from db.db import DBQuestion
+from db.db_functions import (get_chat_answers_table, get_player,
+                             player_add_answer, set_chat_difficulty,
+                             update_player_name)
+from db.db_functions_mg import (db_mg_end_game, db_mg_question_answered,
+                                db_mg_set_current_question,
+                                db_mg_set_current_theme, db_mg_skip_question,
+                                db_mg_update_game, db_mg_wrong_answer,
+                                get_game_by_chat)
+from functions_mg import (get_mg_question, get_question_text, get_scores_table,
+                          get_theme_by_index, get_themes_text, setup_game)
 from options import *
 from settings import TOKEN
-from classes.classGame import Game
-from db.db_functions import set_chat_difficulty, player_add_answer, get_chat_answers_table, update_player_name, get_player
 
 
 class Bot(Client):
@@ -201,7 +207,8 @@ class Bot(Client):
             await message.channel.send('У вас запущена игра Что? Где? Когда? Доиграйте или закончите ее, а потом уже начинайте Свою игру.')
             return
         if not game:
-            game = setup_game(chat_id=chat_id, host_id=player_id)
+            game = setup_game(chat_id=chat_id, 
+                              host_id=player_id)
         elif game.paused:
             game.paused = False
             game.host = get_player(player_id)
@@ -209,8 +216,8 @@ class Bot(Client):
         if game.host.real_name:
             host_name = game.host.real_name
         else:
-            host_name = update_player_name(
-                player_id=player_id, real_name=message.author.name)
+            host_name = update_player_name(player_id=player_id,
+                                           real_name=message.author.name)
         themes_text = get_themes_text(game)
         themes_text += f'Ведуйщий: {host_name}'
         self.hosts[chat_id] = player_id
@@ -458,10 +465,12 @@ class Bot(Client):
         player_name = message.author.display_name
         right_answer = question.answer
         answer_checked = self.check_answer(
-            input_string=message.content, answer_string=right_answer)
+                                            input_string=message.content, 
+                                            answer_string=right_answer)
         if answer_checked:
             answer_status = db_mg_question_answered(
-                question=question, player_id=player_id)
+                                            question=question, 
+                                            message=message)
             self.game_states.pop(chat_id)
             self.answering_player.pop(chat_id)
             self.clear_played(chat_id=chat_id)
@@ -474,7 +483,7 @@ class Bot(Client):
             await message.channel.send(reply)
             return True
         else:
-            db_mg_wrong_answer(question=question, player_id=player_id)
+            db_mg_wrong_answer(question=question, message=message)
             reply = f'{choice(emojis.get("wrong"))} Не-а! {player_name} теряет {question.price} баллов.\n'
             reply += f'Оставшиеся игроки могут нажать на кнопку после БИПа.'
             self.add_played(chat_id=chat_id, player_id=player_id)
@@ -591,7 +600,7 @@ class Bot(Client):
         chat_id = message.channel.id
         player_id = message.author.id
         player_name = message.author.display_name
-        db_mg_wrong_answer(question=question, player_id=player_id)
+        db_mg_wrong_answer(question=question, message=message)
         reply = f'{choice(emojis.get("wrong"))} {player_name} слишком долго думал и потерял {question.price} баллов.\n'
         reply += f'Оставшиеся игроки могут нажать на кнопку после БИПа.'
         self.add_played(chat_id=chat_id, player_id=player_id)
