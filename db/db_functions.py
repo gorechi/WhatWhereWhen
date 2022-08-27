@@ -7,9 +7,9 @@ from db.db import new_session as session
 
 
 def update_player_name(player_id:str, real_name:str) -> str:
-    
+
     """Функция записывает в базу имя игрока."""
-    
+
     player = get_player(player_id=player_id)
     if player.real_name != real_name:
         player.real_name = real_name
@@ -19,9 +19,9 @@ def update_player_name(player_id:str, real_name:str) -> str:
 
 
 def get_chat(chat_id: str) -> DBChat:
-    
+
     """Функция возвращает объект чата DBChat по его идентификатору в Discord"""
-    
+
     chat = session.query(DBChat).filter(DBChat.chat_discord_id == str(chat_id)).first()
     if not chat:
         chat = DBChat(chat_discord_id=chat_id)
@@ -31,9 +31,9 @@ def get_chat(chat_id: str) -> DBChat:
 
 
 def set_chat_difficulty(chat_id: str, dif: int) -> bool:
-    
+
     """Функция устанавливает сложность вопросов в чате."""
-    
+
     chat = get_chat(chat_id)
     chat.difficulty = dif
     session.add(chat)
@@ -42,9 +42,9 @@ def set_chat_difficulty(chat_id: str, dif: int) -> bool:
 
 
 def get_player(player_id: str) -> DBPlayer:
-    
+
     """Функция возвращает объект игрока DBPlayer по его идентификатору в Discord."""
-    
+
     player = session.query(DBPlayer).filter(
             DBPlayer.player_discord_id == player_id).first()
     if not player:
@@ -55,14 +55,13 @@ def get_player(player_id: str) -> DBPlayer:
 
 
 def get_player_name(player_id: str) -> str:
-    
+
     """Функция получения имени игрока."""
-    
+
     player = get_player(player_id)
-    if player.real_name == None:
+    if player.real_name is None:
         return player.player_id
-    else:
-        return player.real_name
+    return player.real_name
 
 
 def player_add_answer(player_id: str, chat_id: str) -> int:

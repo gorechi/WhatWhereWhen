@@ -1,5 +1,5 @@
-from classes.classQuestion import Question #Импортируется класс Вопрос
-import random #Импортируется стандартная библиотека генерации случайных значений
+from classes.classQuestion import Question # Импортируется класс Вопрос
+import random # Импортируется стандартная библиотека генерации случайных значений
 from db.db_functions import get_chat
 import requests
 import untangle
@@ -7,9 +7,9 @@ import re
 
 
 class Game():
- 
+
     current_game={}
-    
+
     def __init__(self, chat_id, is_full_game=False):
         self.chat_id = chat_id
         self.questions_list = []
@@ -49,25 +49,23 @@ class Game():
             self.error = True
             return False
         return True
- 
-    
+
+
     def get_question(self):
         if not self.is_full_game:
             random.shuffle(self.questions_list)
             self.current_question = self.questions_list[0]
             return self.questions_list[0], False, self.number_of_questions
-        else:
-            if self.current_question_number < len(self.questions_list) - 1:
-                self.current_question = self.questions_list[self.current_question_number]
-                self.current_question_number += 1
-                return self.current_question, self.current_question_number, self.number_of_questions
-            else:
-                self.end_game()
-                return False, False, False
+        if self.current_question_number < len(self.questions_list) - 1:
+            self.current_question = self.questions_list[self.current_question_number]
+            self.current_question_number += 1
+            return self.current_question, self.current_question_number, self.number_of_questions
+        self.end_game()
+        return False, False, False
 
 
     def end_game(self):
         self.current_question = None
         self.is_full_game = False
-        Game.current_game[self.chat_id] == None
+        Game.current_game[self.chat_id] = None
         return True
