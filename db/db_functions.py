@@ -61,8 +61,7 @@ def get_player_name(player_id: str) -> str:
     player = get_player(player_id)
     if player.real_name is None:
         return player.player_id
-    else:
-        return player.real_name
+    return player.real_name
 
 
 def player_add_answer(player_id: str, chat_id: str) -> int:

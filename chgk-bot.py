@@ -488,14 +488,13 @@ class Bot(Client):
                 reply += self.end_mg(message=message)
             await message.channel.send(reply)
             return True
-        else:
-            db_mg_wrong_answer(question=question, message=message)
-            reply = f'{choice(emojis.get("wrong"))} Не-а! {player_name} теряет {question.price} баллов.\n'
-            reply += f'Оставшиеся игроки могут нажать на кнопку после БИПа.'
-            self.add_played(chat_id=chat_id, player_id=player_id)
-            await message.channel.send(reply)
-            await self.beep(question=question, message=message)
-            return False
+        db_mg_wrong_answer(question=question, message=message)
+        reply = f'{choice(emojis.get("wrong"))} Не-а! {player_name} теряет {question.price} баллов.\n'
+        reply += f'Оставшиеся игроки могут нажать на кнопку после БИПа.'
+        self.add_played(chat_id=chat_id, player_id=player_id)
+        await message.channel.send(reply)
+        await self.beep(question=question, message=message)
+        return False
 
     
     async def ask_mg_question(self, message: Message, question: DBQuestion):
@@ -709,7 +708,7 @@ class Bot(Client):
         my_game = get_game_by_chat(chat_id=chat_id)
         if chgk_game:
             return chgk_game, chgk_game.current_question, 1
-        elif my_game:
+        if my_game:
             question = get_mg_question(my_game)
             return my_game, question, 2
         return None, None, 0

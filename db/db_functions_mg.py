@@ -164,8 +164,7 @@ def db_mg_set_current_theme(game: DBMyGame, theme: DBTheme) -> DBCurrentTheme:
     if current_theme:
         if current_theme.theme == theme:
             return current_theme
-        else:
-            current_theme.theme = theme
+        current_theme.theme = theme
     else:    
         current_theme = DBCurrentTheme(game=game, theme=theme)
     session.add(current_theme)
@@ -183,8 +182,7 @@ def db_mg_set_current_question(theme: DBTheme, question: DBQuestion) -> DBCurren
     if current_question:
         if current_question.question == question:
             return current_question
-        else:
-            current_question.question = question
+        current_question.question = question
     else:
         current_question = DBCurrentQuestion(theme=theme, question=question)
     session.add(current_question)

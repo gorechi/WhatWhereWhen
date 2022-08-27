@@ -119,8 +119,7 @@ def get_theme_next_question(theme:DBTheme) -> DBQuestion:
     questions = [q for q in theme.questions if not q.is_answered]
     if questions:
         return questions[0]
-    else:
-        return None
+    return None
 
 
 def get_question_text(question:DBQuestion) -> str:

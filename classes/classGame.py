@@ -56,14 +56,12 @@ class Game():
             random.shuffle(self.questions_list)
             self.current_question = self.questions_list[0]
             return self.questions_list[0], False, self.number_of_questions
-        else:
-            if self.current_question_number < len(self.questions_list) - 1:
-                self.current_question = self.questions_list[self.current_question_number]
-                self.current_question_number += 1
-                return self.current_question, self.current_question_number, self.number_of_questions
-            else:
-                self.end_game()
-                return False, False, False
+        if self.current_question_number < len(self.questions_list) - 1:
+            self.current_question = self.questions_list[self.current_question_number]
+            self.current_question_number += 1
+            return self.current_question, self.current_question_number, self.number_of_questions
+        self.end_game()
+        return False, False, False
 
 
     def end_game(self):
