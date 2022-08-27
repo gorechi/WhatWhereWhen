@@ -236,18 +236,6 @@ def get_score(player_id: str, game: DBMyGame) -> DBScore:
     return score
 
 
-def change_score(player_id: str, game_id: str, value: int) -> bool:
-    
-    """Функция изменения баллов игрока."""
-    
-    score = get_score(player_id=player_id, game_id=game_id)
-    if not score:
-        return False
-    score.score += value
-    session.add(score)
-    session.commit()
-
-
 def create_game_from_list(chat_id: str, host_id: str, themes_list: list) -> DBMyGame:
     
     """Функция создания новой Своей игры из данных, полученных с сайта. 

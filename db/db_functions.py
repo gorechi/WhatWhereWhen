@@ -59,7 +59,7 @@ def get_player_name(player_id: str) -> str:
     """Функция получения имени игрока."""
     
     player = get_player(player_id)
-    if player.real_name == None:
+    if player.real_name is None:
         return player.player_id
     else:
         return player.real_name

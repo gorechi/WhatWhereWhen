@@ -69,5 +69,5 @@ class Game():
     def end_game(self):
         self.current_question = None
         self.is_full_game = False
-        Game.current_game[self.chat_id] == None
+        Game.current_game[self.chat_id] = None
         return True
