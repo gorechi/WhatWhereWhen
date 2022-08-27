@@ -7,9 +7,9 @@ import re
 
 
 class Game():
- 
+
     current_game={}
-    
+
     def __init__(self, chat_id, is_full_game=False):
         self.chat_id = chat_id
         self.questions_list = []
@@ -49,8 +49,8 @@ class Game():
             self.error = True
             return False
         return True
- 
-    
+
+
     def get_question(self):
         if not self.is_full_game:
             random.shuffle(self.questions_list)

@@ -26,25 +26,25 @@ from settings import TOKEN
 
 
 class Bot(Client):
-    
+
     """Класс бота Discord"""
-    
+
     def __init__(self, *, loop=None, **options):
-        
+
         """
         В стандартный класс клиента бота Discord добавлены несколько переменных,
         необходимых для функционирования бота Что? Где? Когда?
-        
+
         - self.morph - движок морфологического анализа слов, который используется при проверке
         правильности ответов на вопросы
         - self.hosts - словарь игроков, которые являются ведущими в разных чатах. Ключ - идентификатор чата.
         - self.game_states - словарь текущих состояний игр. Ключ - идентификатор чата.
         - self.answering_player - словарь отвечающих игроков в разных чатах. Ключ - идентификатор чата.
-        - self.played - словарь игроков, которые не могут отвечать на текущий вопрос. 
+        - self.played - словарь игроков, которые не могут отвечать на текущий вопрос.
         Ключ - идентификатор чата, значение - список идентификаторов игроков.
-        
+
         """
-        
+
         super().__init__(loop=loop, options=options)
         self.morph = MorphAnalyzer()
         self.hosts = {}
@@ -56,28 +56,28 @@ class Bot(Client):
         print(f'Logged on as {self.user}!')
 
     async def on_message(self, message: Message) -> None:
-        
+
         """
-        Метод обработки сообщения из чата. 
+        Метод обработки сообщения из чата.
         Реагирует на определенный шаблоны текста сообщения и вызывает соответствующеие методы бота.
-        Все методы бота, которые запускаются отсюда, должны принимать на вход один обязательный параметр - 
+        Все методы бота, которые запускаются отсюда, должны принимать на вход один обязательный параметр -
         объект сообщения чата Message. Дальнейшая логика обработки этого сообщения должна быть реализована уже
         в запускаемом методе.
-        
+
         The method processing a message from a chat.
         It responds to certain message text patterns and calls the corresponding bot method.
         All bot methods that are called from here must take one required parameter -
         chat message object Message. Further logic for processing this message should be implemented
-        in the called method. 
+        in the called method.
         """
-        
+
         chat_id = message.channel.id
 
         if message.author.id == self.user.id or self.game_states.get(chat_id) == game_state.PAUSE:
             return
 
         content = message.content
-        
+
         commands = {
             content.startswith('!факт'): self.fact,
             content.startswith('!вопрос'): self.question,
@@ -101,14 +101,14 @@ class Bot(Client):
 
 
     async def pause(self, message:Message) -> None:
-        
+
         """
         Метод ставит текущую Свою игру на паузу.
-        
+
         The method pauses the current My game.
-        
+
         """
-        
+
         game, question, game_type = self.get_current_game_and_question(
             message=message)
         if game and game_type == 2 and not game.paused:
@@ -126,33 +126,33 @@ class Bot(Client):
             reply = 'Игра поставлена на паузу. Чтобы возобновить игру используйте команду "!своя игра". '
             reply += 'Игра возобновится с того места, на котором вы закончили.'
             await message.channel.send(reply)
-        
-    
+
+
     async def table(self, message: Message) -> None:
-        
+
         """
         Метод выводит в чат таблицу результатов в Своей игре.
-        
+
         The method sends a My game results table to the chat.
-        
+
         """
-        
+
         game, question, game_type = self.get_current_game_and_question(
             message=message)
         if game and game_type == 2 and not game.paused:
             reply = get_scores_table(game)
             await message.channel.send(reply)
-    
-    
+
+
     async def themes(self, message: Message) -> None:
-        
+
         """
         Метод выводит в чат список тем запущенной игры.
-        
+
         The method sends a list of the My game themes to the chat.
-        
+
         """
-        
+
         game, question, game_type = self.get_current_game_and_question(
             message=message)
         if game and game_type == 2 and not game.paused:
@@ -161,16 +161,16 @@ class Bot(Client):
         else:
             await message.channel.send('Своя игра еще не начата, так что и тем вам не будет.',
                                        mention_author=True)
-    
-    
+
+
     async def theme(self, message: Message) -> None:
-        
+
         """
-        Метод запрашивает тему текущей игры и проверяет ее на предмет того, что она уже сыграна. 
-        Выдает в чат следующий вопрос запрошенной темы. 
-        
+        Метод запрашивает тему текущей игры и проверяет ее на предмет того, что она уже сыграна.
+        Выдает в чат следующий вопрос запрошенной темы.
+
         """
-        
+
         chat_id = message.channel.id
         game, question, game_type = self.get_current_game_and_question(
             message=message)
@@ -189,17 +189,17 @@ class Bot(Client):
             await message.channel.send('Надо сначала начать Свою игру, а уж только после этого просить тему.',
                                        mention_author=True)
 
-    
+
     async def my_game(self, message: Message) -> None:
-        
+
         """
-        Метод запуска Своей игры. Проверяет, есть ли в чате запущенная Своя игра. 
+        Метод запуска Своей игры. Проверяет, есть ли в чате запущенная Своя игра.
         Если запущенной игры нет, создает новую игру, делает отправившего команду игрока ведущим.
-        
+
         """
         game, question, game_type = self.get_current_game_and_question(
             message=message)
-        
+
         chat_id = message.channel.id
         player_id = message.author.id
 
@@ -223,14 +223,14 @@ class Bot(Client):
         self.hosts[chat_id] = player_id
         await message.channel.send(themes_text)
 
-    
+
     @staticmethod
     async def fact(message: Message) -> None:
         
         """
-        Метод запрашивает случайный факт на сайте "Музей фактов" и выдает его в чат. 
+        Метод запрашивает случайный факт на сайте "Музей фактов" и выдает его в чат.
         Сейчас не работает так как сайт переехал и сменил верстку.
-        
+
         """
         
         fact_text = None
@@ -257,7 +257,7 @@ class Bot(Client):
         Метод выдает в чат вопрос "Что? Где? Когда?". Метод проверяет на наличие запущенной полноценной игры.
         Если игра есть, то задается следующий вопрос из этой игры. Если игры нет, то на сате базы вопросов запрашивается
         случайный вопрос и отправляется в чат.
-        
+
         """
         
         chat_id = message.channel.id
@@ -288,7 +288,7 @@ class Bot(Client):
                 await message.channel.send(embed=embed)
             await message.channel.send(f'{number_string}\n{question.question}')
 
-    
+
     @staticmethod
     async def repeat(message: Message) -> None:
         
@@ -318,9 +318,9 @@ class Bot(Client):
     async def game(self, message: Message) -> None:
         
         """
-        Метод запускает в чате новую полную игру "Что? Где? Когда". 
+        Метод запускает в чате новую полную игру "Что? Где? Когда".
         Перед запуском новой игры происходит проверка на то, что нет уже запущенной игры.
-        
+
         """
         
         chat_id = message.channel.id
@@ -351,8 +351,8 @@ class Bot(Client):
     async def answer(message: Message) -> None:
         
         """
-        Метод выводит в чат ответ на вопрос игры "Что? Где? Когда?" 
-        
+        Метод выводит в чат ответ на вопрос игры "Что? Где? Когда?"
+
         """
         
         chat_id = message.channel.id
@@ -371,7 +371,7 @@ class Bot(Client):
             else:
                 Game.current_game[chat_id] = None
 
-    
+
     async def finish(self, message: Message) -> None:
         
         """Метод досрочно заканчивает игру, которую играют в чате."""
@@ -397,7 +397,7 @@ class Bot(Client):
     
     @staticmethod
     async def difficulty(message: Message) -> None:
-        
+
         """
         Метод устанавливает для чата сложность вопросов "Что? Где? Когда?" 
         
@@ -416,7 +416,7 @@ class Bot(Client):
     
     @staticmethod
     async def answers_table(message: Message) -> None:
-        
+
         """
         Метод вызывается по команде '!рекорды' 
         и выводит в чат таблицу результатов по игре "Что? Где? Когда?" 
@@ -430,17 +430,17 @@ class Bot(Client):
             table += '{:3} - {}\n'.format(item[0], item[1])
         await message.channel.send(table)
 
-    
+
     async def plain_text(self, message: Message) -> None:
         
         """
         Метод вызывается если в чат пришел простой текст, без '!' в начале.
         Реализованы три ветки логики:
-        
+
         - Ответ на вопрос "Что? Где? Когда?"
         - Нажатие кнопки в Своей игре
         - Ответ на вопрос в Своей игре
-        
+
         """
         
         chat_id = message.channel.id
@@ -511,9 +511,9 @@ class Bot(Client):
     async def mg_button_pressed(self, message: Message, question:DBQuestion):
         
         """
-        Метод срабатывает когда один из игроков нажал кнопку. 
+        Метод срабатывает когда один из игроков нажал кнопку.
         При этом происходит проверка на то, что игрок уже пытался ответить на этот вопрос.
-        
+
         """
         
         chat_id = message.channel.id
@@ -538,7 +538,7 @@ class Bot(Client):
         """
         Метод выдерживает паузу и делает БИП, который означает, что игроки могут нажимать на кнопку.
         Пауза зависит от длины вопроса (количество символов в вопросе делится на 13).
-        
+
         """
         
         chat_id = message.channel.id
@@ -553,12 +553,12 @@ class Bot(Client):
     async def beep_timer(self, question:DBQuestion, message:Message, state:game_state):
         
         """
-        Метод запускает таймер и ждет изменения состояния игры. 
-        Если по истечении таймера состояние игры осталось прежним, то запускается 
+        Метод запускает таймер и ждет изменения состояния игры.
+        Если по истечении таймера состояние игры осталось прежним, то запускается
         метод сброса состояния игры. Метод обрабатывает два состояния:
         - WAITING_FOR_BUTTON - ожидание нажатия кнопки игроками
         - ANSWERING - ожидание ответа игрока, который нажал на кнопку
-        
+
         """
         
         chat_id = message.channel.id
@@ -576,9 +576,9 @@ class Bot(Client):
     async def reset_waiting_for_button(self, question:DBQuestion, message:Message):
         
         """
-        Метод выполняется если никто не нажал на кнопку. 
+        Метод выполняется если никто не нажал на кнопку.
         Метод закрывает вопрос, проверяет, закрыта ли тема, и выдает информацию в чат.
-        
+
         """
         
         chat_id = message.channel.id
@@ -599,7 +599,7 @@ class Bot(Client):
         """
         Метод выполняется если игрок не дал ответ на вопрос после нажатия на кнопку.
         Метод делает так, что вопрос считается неотвеченным и снова запускает БИП.
-        
+
         """
         
         chat_id = message.channel.id
@@ -612,12 +612,12 @@ class Bot(Client):
         await message.channel.send(reply)
         await self.beep(question=question, message=message)
     
-        
+
     def end_mg(self, message:Message) ->str:
     
         """
         Метод подводит итоги Своей игры.
-        
+
         Возвращает строку результатов игры для вывода в чат.
         """
         
@@ -651,9 +651,9 @@ class Bot(Client):
         """
         Метод добавляет игрока, который ответил неправильно, в список игроков,
         которые больше не могут отвеечать на текущий вопрос.
-        
+
         """
-        
+
         if not self.played.get(chat_id):
             self.played[chat_id] = []
         self.played[chat_id].append(player_id)
@@ -672,7 +672,7 @@ class Bot(Client):
         """
         Метод проверяет, находится ли игрок, приславший сообщение, в списке игроков,
         которые не могут отвечать на вопрос.
-        
+
         """
         
         played_list = self.played.get(chat_id)
@@ -684,23 +684,23 @@ class Bot(Client):
     
     @staticmethod
     def get_current_game_and_question(message: Message) -> tuple:
-        
+
         """
         Метод возвращает текущую игру и текущий вопрос внутри нее.
         Метод работает как для "Что? Где? Когда?", так и для Своей игры.
-        
+
         Метод возвращает кортеж из трех параметров:
-        
+
         - Объект игры / None если игра не найдена
         - Объект текущего вопроса игры / None если игра не найдена или в игре нет текущего вопроса
         - Тип игры (целое):
-                
+
                 1 - "Что? Где? Когда?"
-        
+
                 2 - Своя игра
-                
+
                 0 - Игра не найдена
-                
+
         """
         
         chat_id = message.channel.id
@@ -726,16 +726,16 @@ class Bot(Client):
 
     
     def check_answer(self, input_string: str, answer_string: str) -> bool:
-        
+
         """
         Метод проверки ответа на вопрос. Получает на вход две строки:
-        
+
         - input_string - строка ответа из сообщения игрока
         - answer_string - строка правильного ответа из вопроса
-        
+
         Обе строки переводятся в массивы слов, приведенных к начальной форме.
         После этого происходит поиск всех слов из ответа пользователя в правильном ответе.
-        
+
         """
         
         answer_list = self.normalize_string(answer_string.lower())
@@ -754,7 +754,7 @@ class Bot(Client):
         Метод переводит строку в массив слов, привденных к начальной форме.
         Работает только для русского языка.
         Если нужны другие языки, нужно устанавливать словари библиотеки pymorphy2.
-        
+
         """
         
         word_list = re.split(r'\W+', input_string)
