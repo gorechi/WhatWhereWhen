@@ -224,7 +224,8 @@ class Bot(Client):
         await message.channel.send(themes_text)
 
     
-    async def fact(self, message: Message) -> None:
+    @staticmethod
+    async def fact(message: Message) -> None:
         
         """
         Метод запрашивает случайный факт на сайте "Музей фактов" и выдает его в чат. 
@@ -249,7 +250,8 @@ class Bot(Client):
         await message.channel.send(embed=embed)
 
     
-    async def question(self, message: Message) -> None:
+    @staticmethod
+    async def question(message: Message) -> None:
         
         """
         Метод выдает в чат вопрос "Что? Где? Когда?". Метод проверяет на наличие запущенной полноценной игры.
@@ -287,7 +289,8 @@ class Bot(Client):
             await message.channel.send(f'{number_string}\n{question.question}')
 
     
-    async def repeat(self, message: Message) -> None:
+    @staticmethod
+    async def repeat(message: Message) -> None:
         
         """Метод повторно выводит в чат уже заданный вопрос."""
         
@@ -344,7 +347,8 @@ class Bot(Client):
             await message.channel.send(f'{number_string}\n{question.question}')
 
     
-    async def answer(self, message: Message) -> None:
+    @staticmethod
+    async def answer(message: Message) -> None:
         
         """
         Метод выводит в чат ответ на вопрос игры "Что? Где? Когда?" 
@@ -391,7 +395,8 @@ class Bot(Client):
                                        mention_author=True)
 
     
-    async def difficulty(self, message: Message) -> None:
+    @staticmethod
+    async def difficulty(message: Message) -> None:
         
         """
         Метод устанавливает для чата сложность вопросов "Что? Где? Когда?" 
@@ -409,7 +414,8 @@ class Bot(Client):
             await message.channel.send(f'В этот чат будут приходить {difficulty_list[difficulty]} игры и вопросы.')
 
     
-    async def answers_table(self, message: Message) -> None:
+    @staticmethod
+    async def answers_table(message: Message) -> None:
         
         """
         Метод вызывается по команде '!рекорды' 
@@ -677,7 +683,8 @@ class Bot(Client):
         return False
 
     
-    def get_current_game_and_question(self, message: Message) -> tuple:
+    @staticmethod
+    def get_current_game_and_question(message: Message) -> tuple:
         
         """
         Метод возвращает текущую игру и текущий вопрос внутри нее.
