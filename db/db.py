@@ -14,21 +14,21 @@ new_session = Session(bind=engine)
 Base = declarative_base()
 
 class DBResult(Base):
-    
+
     """
-    Класс статистики игрока в отдельном чате. 
-    
+    Класс статистики игрока в отдельном чате.
+
     Содержит:
     - chat_id - идетификатор объекта DBChat
     - player_id - идентификатор объекта DBPlayer
     - answers - количество правильных ответов в Что? Где? Когда?
     - mg_wins - количество побед в Своей игре
-    
+
     Дополнительные связи:
     - player
     - chat
     """
-    
+
     __tablename__ = 'results'
     id = Column(Integer(), primary_key=True)
     chat_id = Column(Integer(), ForeignKey('chats.id'))
@@ -52,18 +52,18 @@ class DBResult(Base):
 
 
 class DBChat(Base):
-    
+
     """
-    Класс чата. 
-    
+    Класс чата.
+
     Содержит:
     - chat_discord_id - идетификатор чата Discord
     - difficulty - сложность игр Что? Где? Когда? в этом чате.
-    
+
     Дополнительные связи:
     - chat_results
     """
-    
+
     __tablename__ = 'chats'
     id = Column(Integer(), primary_key=True)
     chat_discord_id = Column(String(), nullable=False, unique=True)
@@ -74,18 +74,18 @@ class DBChat(Base):
 
 
 class DBPlayer(Base):
-    
+
     """
-    Класс игрока. 
-    
+    Класс игрока.
+
     Содержит:
     - player_discord_id - идентификатор игрока в Discord
     - real_name - ник игрока в Discord
-    
+
     Дополнительные связи:
     - scores
     """
-    
+
     __tablename__ = 'players'
     id = Column(Integer(), primary_key=True)
     player_discord_id = Column(String(50), nullable=False, unique=True)
@@ -96,20 +96,20 @@ class DBPlayer(Base):
 
 
 class DBMyGame(Base):
-    
+
     """
-    Класс Своей игры. 
-    
+    Класс Своей игры.
+
     Содержит:
     - chat_id - идетификатор объекта DBChat
     - host_id - ведущий игры, идентификатор объекта DBPlayer
-    - paused - признак того, что игра находится на паузе 
-    
+    - paused - признак того, что игра находится на паузе
+
     Дополнительные связи:
     - current_theme - текущая тема игры
     - scores - баллы игроков в данной игре
     """
-    
+
     __tablename__ = 'mygame'
     id = Column(Integer(), primary_key=True)
     chat_id = Column(Integer(), ForeignKey('chats.id'))
@@ -117,27 +117,27 @@ class DBMyGame(Base):
     paused = Column(Boolean(), default=False)
     chat = relationship('DBChat')
     host = relationship('DBPlayer')
-    
+
     def __repr__(self):
         return f'<Моя игра: id = {self.id}, host = {self.host}>'
 
 
 class DBTheme(Base):
-    
+
     """
-    Класс темы Своей игры. 
-    
+    Класс темы Своей игры.
+
     Содержит:
     - game_id - идетификатор объекта DBMyGame
     - name - название темы
     - theme_index - порядковый номер темы
     - is_played - признак того, что в теме сыграны все вопросы
-    
+
     Дополнительные связи:
     - questions - список всех вопросов игры
     - current_question - текущий вопрос в теме
     """
-    
+
     __tablename__ = 'themes'
     id = Column(Integer(), primary_key=True)
     game_id = Column(Integer(), ForeignKey('mygame.id'))
@@ -148,25 +148,25 @@ class DBTheme(Base):
                         backref=backref('themes', 
                                         order_by=id, 
                                         cascade="all, delete-orphan"))
-    
+
     def __repr__(self):
         return f'<Тема: index = {self.theme_index}, name = {self.name}>'
-    
+
 
 class DBCurrentTheme(Base):
-    
+
     """
     Класс текущей темы Своей игры. Служит для связки между темами и Своей игрой.
-    
+
     Содержит:
     - game_id - идетификатор объекта DBMyGame
     - theme_id - идентификатор объекта DBTheme
-    
+
     Дополнительные связи:
     - theme
     - game
     """
-    
+
     __tablename__ = 'current_themes'
     id = Column(Integer(), primary_key=True)
     game_id = Column(Integer(), ForeignKey('mygame.id'))
@@ -177,27 +177,27 @@ class DBCurrentTheme(Base):
                                         cascade="all, delete-orphan", 
                                         uselist=False))
     theme = relationship('DBTheme', uselist=False)
-    
+
     def __repr__(self):
         return f'<Текущая тема: game = {self.game}, theme = {self.theme}>'
 
 
 class DBQuestion(Base):
-    
+
     """
-    Класс вопроса Своей игры. 
-    
+    Класс вопроса Своей игры.
+
     Содержит:
     - theme_id - идентификатор объекта DBTheme
     - text - текст вопроса
     - price - стоимость вопроса в баллах
     - answer - текст ответа на вопрос
     - is_answered - признак того, что на вопрос уже ответили
-    
+
     Дополнительные связи:
     - theme - объект темы игры
     """
-    
+
     __tablename__ = 'questions'
     id = Column(Integer(), primary_key=True)
     theme_id = Column(Integer(), ForeignKey('themes.id'))
@@ -209,25 +209,25 @@ class DBQuestion(Base):
                          backref=backref('questions', 
                                          order_by=id, 
                                          cascade="all, delete-orphan"))
-    
+
     def __repr__(self):
         return f'<Вопрос: price = {self.price}, is_answered = {self.is_answered}>'
 
 
 class DBCurrentQuestion(Base):
-    
+
     """
     Класс текущего вопроса Своей игры. Служит для связки между темами и вопросами.
-    
+
     Содержит:
     - theme_id - идентификатор объекта DBTheme
     - question_id - идентификатор объекта DBQuestion
-    
+
     Дополнительные связи:
     - theme
     - question
     """
-    
+
     __tablename__ = 'current_questions'
     id = Column(Integer(), primary_key=True)
     theme_id = Column(Integer(), ForeignKey('themes.id'))
@@ -240,26 +240,26 @@ class DBCurrentQuestion(Base):
                                          uselist=False))
     question = relationship('DBQuestion', 
                             uselist=False)
-    
+
     def __repr__(self):
         return f'<Текущий вопрос: theme = {self.theme}, question = {self.question}>'    
 
 
 class DBScore(Base):
-    
+
     """
     Класс счета игроков в Своей игре.
-    
+
     Содержит:
     - game_id - идетификатор объекта DBMyGame
     - player_id - идентификатор объекта DBPlayer
     - score - количество баллов, которое набрал игрок
-    
+
     Дополнительные связи:
     - player
     - game
     """
-    
+
     __tablename__ = 'mg_scores'
     id = Column(Integer(), primary_key=True)
     game_id = Column(Integer(), ForeignKey('mygame.id'))
@@ -275,7 +275,7 @@ class DBScore(Base):
                         backref=backref('scores', 
                                         order_by=game_id, 
                                         cascade="all, delete-orphan"))
-    
+
     def __repr__(self):
         return f'<Счет: player = {self.player}, score = {self.score}>'
-                         
+
