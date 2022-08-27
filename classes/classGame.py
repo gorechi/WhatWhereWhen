@@ -1,5 +1,5 @@
-from classes.classQuestion import Question #Импортируется класс Вопрос
-import random #Импортируется стандартная библиотека генерации случайных значений
+from classes.classQuestion import Question # Импортируется класс Вопрос
+import random # Импортируется стандартная библиотека генерации случайных значений
 from db.db_functions import get_chat
 import requests
 import untangle
