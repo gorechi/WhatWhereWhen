@@ -70,7 +70,10 @@ def db_mg_question_answered(question:DBQuestion, message:Message) -> question_an
 
 def db_mg_wrong_answer(question:DBQuestion, message:Message):
 
-    """Функция фиксирует в базе неправильный ответ на вопрос."""
+    """
+    Функция фиксирует в базе неправильный ответ на вопрос.
+    
+    """
 
     theme = question.theme
     game = theme.game
