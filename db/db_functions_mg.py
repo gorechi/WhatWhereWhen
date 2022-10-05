@@ -51,7 +51,7 @@ def db_mg_question_answered(question:DBQuestion, message:Message) -> question_an
 
     """Функция фиксирует в базе правильный ответ на вопрос."""
 
-    player_id = message.autor.id
+    player_id = message.author.id
     update_player_name(player_id=player_id, real_name=message.author.display_name)
     theme = question.theme
     game = theme.game
@@ -74,7 +74,7 @@ def db_mg_wrong_answer(question:DBQuestion, message:Message):
 
     theme = question.theme
     game = theme.game
-    player_id = message.autor.id
+    player_id = message.author.id
     update_player_name(player_id=player_id, real_name=message.author.display_name)
     score = get_score(player_id=player_id, game=game)
     db_mg_update_score(score=score, value=(0-question.price))
