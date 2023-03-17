@@ -30,6 +30,19 @@ def db_mg_get_scores(game:DBMyGame) -> list:
     return scores
 
 
+def define_game_status_after_answer(game:DBMyGame, theme:DBTheme) -> question_answered:
+    
+    """Функция определяет, какой энум нужно вернуть после правильного ответа."""
+    
+    theme_is_played = db_mg_check_theme_is_played(theme)
+    if theme_is_played:
+        game_is_finished = db_mg_check_game_is_finished(game=game)
+        if game_is_finished:
+            return question_answered.GAME
+        return question_answered.THEME
+    return question_answered.ONLY_QUESTION
+
+
 def db_mg_skip_question(question:DBQuestion) -> question_answered:
 
     """Функция пропускает вопрос если никто на него не смог ответить."""
@@ -38,13 +51,7 @@ def db_mg_skip_question(question:DBQuestion) -> question_answered:
     game = theme.game
     question.is_answered = True
     session.commit()
-    theme_is_played = db_mg_check_theme_is_played(theme)
-    if theme_is_played:
-        game_is_finished = db_mg_check_game_is_finished(game=game)
-        if game_is_finished:
-            return question_answered.GAME
-        return question_answered.THEME
-    return question_answered.ONLY_QUESTION
+    return define_game_status_after_answer(game, theme)
 
 
 def db_mg_question_answered(question:DBQuestion, message:Message) -> question_answered:
@@ -59,13 +66,7 @@ def db_mg_question_answered(question:DBQuestion, message:Message) -> question_an
     db_mg_update_score(score=score, value=question.price)
     question.is_answered = True
     session.commit()
-    theme_is_played = db_mg_check_theme_is_played(theme)
-    if theme_is_played:
-        game_is_finished = db_mg_check_game_is_finished(game=game)
-        if game_is_finished:
-            return question_answered.GAME
-        return question_answered.THEME
-    return question_answered.ONLY_QUESTION
+    return define_game_status_after_answer(game, theme)
 
 
 def db_mg_wrong_answer(question:DBQuestion, message:Message):
